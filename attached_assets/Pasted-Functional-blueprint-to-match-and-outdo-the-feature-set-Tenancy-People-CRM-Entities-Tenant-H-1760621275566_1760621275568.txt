@@ -1,0 +1,45 @@
+Functional blueprint to match (and outdo) the feature set
+
+Tenancy & People CRM
+
+Entities: Tenant, Household member/Dependent, Support worker, Landlord/Owner, Property, Unit/Room, Tenancy, Document, Note, Task, Visit, Risk, Case (complaint/safeguarding/ASB), Maintenance job, Charge/Payment/Arrears.
+
+Capabilities: Intake (KYC checks), ID & document vault, e-sign AST/licence/support plans, support notes with prompts, assessments (needs, risks), progression scales, attachments, tags, search. (Aligns to “Record tenant information”, “E-signatures”, “Measure progression”.) 
+rmsolutions.io
+
+Case Management (Complaints / Safeguarding / ASB)
+
+Case types, severity, triage, chronology, actions, referrals, outcomes, review dates, linked tenants/properties; audit trail & export pack. (Matches the “New Feature – Case Logs”.) 
+rmsolutions.io
+
+Property, Estate & Maintenance
+
+Asset register (properties, rooms, fixtures), inspections, compliance certificates, planned & reactive maintenance (SLAs, contractors, quotes, scheduling), photo evidence, cost codes, stock. (Matches “Property monitoring & maintenance”, “Estate management”.) 
+rmsolutions.io
+
+Rents, Charges & Arrears
+
+Weekly service charge schedules, HB/UC rent components, transactions import, arrears workflows, statements, repayment plans, dunning letters, analytics. (Matches “Rent reconciliation, charges & arrears recording”.) 
+rmsolutions.io
+
+Reporting & Oversight
+
+Live dashboards (compliance status, support KPIs, arrears ladder, voids, case SLAs, maintenance backlog), drill-downs, evidence packs for inspections, scheduled reports to email. (Matches “Real time reporting”, “Full oversight monitoring”.) 
+rmsolutions.io
++1
+
+Mobile & Remote Work
+
+Responsive web app + worker mobile (offline-first notes/photos; GPS-stamped visits where appropriate), role-aware quick actions. (Matches “Work remotely”, “Cloud-based”, “Fully accessible information on any device”.) 
+rmsolutions.io
++1
+
+Support & Training
+
+In-app help, chat/phone support routing, onboarding checklists, sandbox tenant/property for training. (Aligns to “Online and phone support”, “FREE training”.) 
+rmsolutions.io
++1
+
+Security, Compliance & Audit
+
+Role-based access control, granular permissions per team/site; field-level audit; immutable event log; data retention rules; DPIA templates; GDPR tools (DSAR export, right-to-erasure where lawful); SSO/OIDC. (Site claims “Secure, safe & compliant platform”.)
