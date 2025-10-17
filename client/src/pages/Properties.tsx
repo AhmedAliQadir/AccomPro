@@ -1,7 +1,7 @@
 import { PropertyCard } from "@/components/PropertyCard";
-import { Button } from "@/components/ui/button";
+import { AddPropertyDialog } from "@/components/AddPropertyDialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 
 //todo: remove mock functionality
@@ -56,10 +56,7 @@ export default function Properties() {
             Manage properties and compliance
           </p>
         </div>
-        <Button data-testid="button-add-property">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Property
-        </Button>
+        <AddPropertyDialog />
       </div>
 
       <div className="flex items-center gap-4">

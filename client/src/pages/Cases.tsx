@@ -1,5 +1,5 @@
 import { CaseCard } from "@/components/CaseCard";
-import { Button } from "@/components/ui/button";
+import { AddCaseDialog } from "@/components/AddCaseDialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 
 //todo: remove mock functionality
@@ -66,10 +66,7 @@ export default function Cases() {
             Track complaints, safeguarding, and ASB cases
           </p>
         </div>
-        <Button data-testid="button-add-case">
-          <Plus className="mr-2 h-4 w-4" />
-          New Case
-        </Button>
+        <AddCaseDialog />
       </div>
 
       <div className="flex items-center gap-4">

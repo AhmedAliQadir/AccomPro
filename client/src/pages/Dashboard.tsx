@@ -2,8 +2,7 @@ import { DashboardStats } from "@/components/DashboardStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MaintenanceList } from "@/components/MaintenanceList";
 import { CaseCard } from "@/components/CaseCard";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { AddTenantDialog } from "@/components/AddTenantDialog";
 
 //todo: remove mock functionality
 const recentCases = [
@@ -38,10 +37,7 @@ export default function Dashboard() {
             Overview of your accommodation management
           </p>
         </div>
-        <Button data-testid="button-add-tenant">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Tenant
-        </Button>
+        <AddTenantDialog />
       </div>
 
       <DashboardStats />

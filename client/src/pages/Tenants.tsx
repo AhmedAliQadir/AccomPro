@@ -1,7 +1,7 @@
 import { TenantsTable } from "@/components/TenantsTable";
-import { Button } from "@/components/ui/button";
+import { AddTenantDialog } from "@/components/AddTenantDialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 
 export default function Tenants() {
@@ -16,10 +16,7 @@ export default function Tenants() {
             Manage tenant information and support records
           </p>
         </div>
-        <Button data-testid="button-add-tenant">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Tenant
-        </Button>
+        <AddTenantDialog />
       </div>
 
       <div className="flex items-center gap-4">
