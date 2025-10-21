@@ -236,10 +236,10 @@ export default function TenantDetailPage() {
                   <span className="text-muted-foreground">Start Date: </span>
                   {new Date(activeTenancy.startDate).toLocaleDateString()}
                 </div>
-                {activeTenancy.serviceChargeAmount && (
+                {activeTenancy.serviceChargeAmount != null && (
                   <div className="text-sm">
                     <span className="text-muted-foreground">Service Charges: </span>
-                    £{activeTenancy.serviceChargeAmount.toFixed(2)} / month
+                    £{Number(activeTenancy.serviceChargeAmount).toFixed(2)} / month
                   </div>
                 )}
                 {canEndTenancy && (
