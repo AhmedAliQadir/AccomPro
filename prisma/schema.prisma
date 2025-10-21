@@ -200,7 +200,7 @@ model Tenancy {
   startDate           DateTime
   endDate             DateTime?
   isActive            Boolean   @default(true)
-  serviceChargeAmount Decimal   @db.Decimal(10, 2)
+  serviceChargeAmount Decimal?  @db.Decimal(10, 2)
   endReason           String?
   endNotes            String?
   endedById           String?

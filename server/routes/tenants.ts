@@ -159,10 +159,15 @@ router.get('/:id', async (req: AuthRequest, res) => {
 
 router.post('/', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(createTenantSchema), async (req: AuditableRequest, res) => {
   try {
-    const data = { ...req.body };
+    const { nationalId, ...rest } = req.body;
+    const data: any = { ...rest };
     
     if (data.dateOfBirth && typeof data.dateOfBirth === 'string') {
       data.dateOfBirth = new Date(data.dateOfBirth);
+    }
+    
+    if (nationalId) {
+      data.nationalInsuranceNumber = nationalId;
     }
     
     const tenant = await prisma.tenant.create({
@@ -186,10 +191,15 @@ router.post('/', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(createTenantSche
 router.patch('/:id', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(updateTenantSchema), async (req: AuditableRequest, res) => {
   try {
     const { id } = req.params;
-    const data = { ...req.body };
+    const { nationalId, ...rest } = req.body;
+    const data: any = { ...rest };
     
     if (data.dateOfBirth && typeof data.dateOfBirth === 'string') {
       data.dateOfBirth = new Date(data.dateOfBirth);
+    }
+    
+    if (nationalId !== undefined) {
+      data.nationalInsuranceNumber = nationalId;
     }
 
     const tenant = await prisma.tenant.update({
@@ -211,10 +221,11 @@ router.patch('/:id', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(updateTenant
   }
 });
 
-router.post('/:tenantId/tenancies', authorize('ADMIN', 'OPS'), validate(createTenancySchema), async (req: AuditableRequest, res) => {
+router.post('/:tenantId/tenancies', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(createTenancySchema), async (req: AuthRequest & AuditableRequest, res) => {
   try {
     const { tenantId } = req.params;
     const { roomId, startDate } = req.body;
+    const { role, userId } = req.user!;
 
     const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
     if (!tenant) {
@@ -232,6 +243,20 @@ router.post('/:tenantId/tenancies', authorize('ADMIN', 'OPS'), validate(createTe
 
     if (!room) {
       return res.status(404).json({ error: 'Room not found' });
+    }
+
+    if (role === 'SUPPORT') {
+      const hasAccess = await prisma.assignment.findFirst({
+        where: {
+          userId,
+          propertyId: room.propertyId,
+          endDate: null,
+        },
+      });
+
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied: You can only create tenancies for rooms in your assigned properties' });
+      }
     }
 
     if (room.tenancies.length >= room.capacity) {
