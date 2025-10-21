@@ -257,7 +257,8 @@ export default function TenantDetailPage() {
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Uploaded {new Date(doc.uploadedAt).toLocaleDateString()} by {doc.uploadedBy.firstName} {doc.uploadedBy.lastName}
+                          Uploaded {new Date(doc.uploadedAt).toLocaleDateString()}
+                          {doc.uploadedBy && ` by ${doc.uploadedBy.firstName} ${doc.uploadedBy.lastName}`}
                         </p>
                         {doc.verifiedAt && (
                           <p className="text-xs text-muted-foreground">
