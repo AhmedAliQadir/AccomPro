@@ -6,6 +6,8 @@ export const createPropertySchema = z.object({
   postcode: z.string().min(1, 'Postcode is required'),
   totalUnits: z.number().int().positive('Total units must be positive'),
   description: z.string().optional(),
+  serviceChargeAmount: z.number().positive().optional(),
+  serviceChargeNotes: z.string().optional(),
 });
 
 export const updatePropertySchema = createPropertySchema.partial();

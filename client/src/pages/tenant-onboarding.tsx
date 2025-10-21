@@ -41,7 +41,7 @@ interface RoomAssignment {
   propertyId: string;
   roomId: string;
   startDate: string;
-  rentAmount: string;
+  serviceChargeAmount: string;
 }
 
 interface DocumentUpload {
@@ -79,7 +79,7 @@ export default function TenantOnboardingPage() {
     propertyId: '',
     roomId: '',
     startDate: '',
-    rentAmount: '',
+    serviceChargeAmount: '',
   });
 
   const [documents, setDocuments] = useState<DocumentUpload[]>([]);
@@ -179,7 +179,7 @@ export default function TenantOnboardingPage() {
         tenantId,
         roomId: roomAssignment.roomId,
         startDate: roomAssignment.startDate,
-        rentAmount: roomAssignment.rentAmount ? parseFloat(roomAssignment.rentAmount) : undefined,
+        serviceChargeAmount: roomAssignment.serviceChargeAmount ? parseFloat(roomAssignment.serviceChargeAmount) : undefined,
       });
 
       for (const doc of documents) {
@@ -442,14 +442,14 @@ export default function TenantOnboardingPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="rentAmount">Rent Amount (£)</Label>
+                <Label htmlFor="serviceChargeAmount">Service Charges (£)</Label>
                 <Input
-                  id="rentAmount"
+                  id="serviceChargeAmount"
                   type="number"
                   step="0.01"
-                  value={roomAssignment.rentAmount}
-                  onChange={(e) => setRoomAssignment({ ...roomAssignment, rentAmount: e.target.value })}
-                  data-testid="input-rent-amount"
+                  value={roomAssignment.serviceChargeAmount}
+                  onChange={(e) => setRoomAssignment({ ...roomAssignment, serviceChargeAmount: e.target.value })}
+                  data-testid="input-service-charge-amount"
                 />
               </div>
             </div>
@@ -561,7 +561,7 @@ export default function TenantOnboardingPage() {
                 <div><span className="text-muted-foreground">Property:</span> {selectedProperty?.name}</div>
                 <div><span className="text-muted-foreground">Room:</span> {selectedProperty?.rooms.find(r => r.id === roomAssignment.roomId)?.roomNumber}</div>
                 <div><span className="text-muted-foreground">Start Date:</span> {roomAssignment.startDate}</div>
-                {roomAssignment.rentAmount && <div><span className="text-muted-foreground">Rent:</span> £{roomAssignment.rentAmount}</div>}
+                {roomAssignment.serviceChargeAmount && <div><span className="text-muted-foreground">Service Charges:</span> £{roomAssignment.serviceChargeAmount}</div>}
               </div>
             </div>
 

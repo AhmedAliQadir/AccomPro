@@ -43,6 +43,8 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
   const [postcode, setPostcode] = useState('');
   const [totalUnits, setTotalUnits] = useState('');
   const [description, setDescription] = useState('');
+  const [serviceChargeAmount, setServiceChargeAmount] = useState('');
+  const [serviceChargeNotes, setServiceChargeNotes] = useState('');
   const { toast } = useToast();
 
   const createMutation = useMutation({
@@ -58,6 +60,8 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
       setPostcode('');
       setTotalUnits('');
       setDescription('');
+      setServiceChargeAmount('');
+      setServiceChargeNotes('');
       toast({
         title: 'Property created',
         description: 'The property has been created successfully',
@@ -81,6 +85,8 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
       postcode,
       totalUnits: parseInt(totalUnits, 10),
       description: description || undefined,
+      serviceChargeAmount: serviceChargeAmount ? parseFloat(serviceChargeAmount) : undefined,
+      serviceChargeNotes: serviceChargeNotes || undefined,
     });
   };
 
@@ -149,6 +155,29 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               data-testid="input-property-description"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="serviceChargeAmount">Service Charge Amount (£) (Optional)</Label>
+            <Input
+              id="serviceChargeAmount"
+              type="number"
+              step="0.01"
+              min="0"
+              value={serviceChargeAmount}
+              onChange={(e) => setServiceChargeAmount(e.target.value)}
+              placeholder="e.g. 85.00"
+              data-testid="input-property-service-charge"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="serviceChargeNotes">Service Charge Notes (Optional)</Label>
+            <Textarea
+              id="serviceChargeNotes"
+              value={serviceChargeNotes}
+              onChange={(e) => setServiceChargeNotes(e.target.value)}
+              placeholder="e.g. Includes utilities and maintenance"
+              data-testid="input-property-service-charge-notes"
             />
           </div>
           <div className="flex gap-2">

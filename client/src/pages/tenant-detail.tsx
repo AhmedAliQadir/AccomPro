@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, User, MapPin, Phone, Mail, Calendar, FileText, Download, Check, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -44,7 +45,7 @@ interface Tenant {
     id: string;
     startDate: string;
     endDate?: string;
-    rentAmount?: number;
+    serviceChargeAmount?: number;
     isActive: boolean;
     room: {
       id: string;
@@ -76,13 +77,56 @@ export default function TenantDetailPage() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute('/tenants/:id');
   const tenantId = params?.id;
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [endTenancyOpen, setEndTenancyOpen] = useState(false);
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [endReason, setEndReason] = useState('');
+  const [endNotes, setEndNotes] = useState('');
 
   const { data, isLoading } = useQuery<{ tenant: Tenant }>({
     queryKey: ['/api/tenants', tenantId],
     enabled: !!tenantId,
   });
 
+  const endTenancyMutation = useMutation({
+    mutationFn: async ({ tenancyId, data }: { tenancyId: string; data: any }) => {
+      const response = await apiRequest('PATCH', `/api/tenancies/${tenancyId}/end`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenants', tenantId] });
+      setEndTenancyOpen(false);
+      setEndDate(new Date().toISOString().split('T')[0]);
+      setEndReason('');
+      setEndNotes('');
+      toast({
+        title: 'Tenancy ended',
+        description: 'The tenancy has been ended successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to end tenancy',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleEndTenancy = (tenancyId: string) => {
+    endTenancyMutation.mutate({
+      tenancyId,
+      data: {
+        endDate: endDate || new Date().toISOString().split('T')[0],
+        endReason: endReason || undefined,
+        endNotes: endNotes || undefined,
+      },
+    });
+  };
+
   const tenant = data?.tenant;
+  const canEndTenancy = user?.role === 'ADMIN' || user?.role === 'OPS';
 
   if (isLoading) {
     return (
@@ -192,11 +236,79 @@ export default function TenantDetailPage() {
                   <span className="text-muted-foreground">Start Date: </span>
                   {new Date(activeTenancy.startDate).toLocaleDateString()}
                 </div>
-                {activeTenancy.rentAmount && (
+                {activeTenancy.serviceChargeAmount && (
                   <div className="text-sm">
-                    <span className="text-muted-foreground">Rent: </span>
-                    £{activeTenancy.rentAmount.toFixed(2)} / month
+                    <span className="text-muted-foreground">Service Charges: </span>
+                    £{activeTenancy.serviceChargeAmount.toFixed(2)} / month
                   </div>
+                )}
+                {canEndTenancy && (
+                  <Dialog open={endTenancyOpen} onOpenChange={setEndTenancyOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="destructive" size="sm" className="w-full" data-testid="button-end-tenancy">
+                        End Tenancy
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>End Tenancy</DialogTitle>
+                        <DialogDescription>
+                          Record the end of this tenancy. The tenant's status will be updated to "Moved Out" if they have no other active tenancies.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="endDate">End Date</Label>
+                          <Input
+                            id="endDate"
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            placeholder="Leave empty for today"
+                            data-testid="input-end-date"
+                          />
+                          <p className="text-xs text-muted-foreground">Leave empty to use today's date</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="endReason">Reason</Label>
+                          <Input
+                            id="endReason"
+                            value={endReason}
+                            onChange={(e) => setEndReason(e.target.value)}
+                            placeholder="e.g. Moved to independent living"
+                            data-testid="input-end-reason"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="endNotes">Notes</Label>
+                          <Textarea
+                            id="endNotes"
+                            value={endNotes}
+                            onChange={(e) => setEndNotes(e.target.value)}
+                            placeholder="Additional details about ending this tenancy"
+                            data-testid="input-end-notes"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          onClick={() => setEndTenancyOpen(false)}
+                          disabled={endTenancyMutation.isPending}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleEndTenancy(activeTenancy.id)}
+                          disabled={endTenancyMutation.isPending}
+                          data-testid="button-confirm-end-tenancy"
+                        >
+                          {endTenancyMutation.isPending ? 'Ending...' : 'End Tenancy'}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 )}
               </div>
             ) : (
