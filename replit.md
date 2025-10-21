@@ -8,6 +8,21 @@ AccomPro is a comprehensive SaaS platform for social housing associations managi
 
 **Target Users**: Housing associations, social services organizations, and supported living providers managing multiple properties with vulnerable tenant populations requiring varying levels of support.
 
+## Recent Changes
+
+**October 21, 2025**: Completed comprehensive tenant onboarding redesign
+- Replaced basic 4-step onboarding with complete 6-step intake process matching paper form requirements
+- **Step 1 (Personal Details)**: Title, name, DOB, NI number, nationality, contact info, previous address, languages spoken/written
+- **Step 2 (Room Assignment)**: Property selection, room selection, move-in date, service charges
+- **Step 3 (Financial Information)**: Benefit type (Universal Credit, JSA, etc.), payment frequency, benefit amount
+- **Step 4 (Emergency & Professional Contacts)**: Next of kin details, doctor information, probation officer details (optional)
+- **Step 5 (Document Upload)**: Mandatory documents (Proof of ID, Proof of Income), optional documents (Reference Letter, Medical Report, Other)
+- **Step 6 (Review & Submit)**: Complete summary of all collected information organized by category before final submission
+- Extended database schema: Added `doctorName`, `doctorPhone`, `probationOfficerName`, `probationOfficerPhone` to TenantRiskAssessment model
+- Implemented nested record creation: Single tenant submission now creates records in Tenant, TenantProfile, TenantFinance, TenantEmergencyContact, and TenantRiskAssessment tables
+- Added empty-string sanitization to prevent partial/invalid data persistence
+- Fixed tenant detail page to handle null service charges gracefully
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
