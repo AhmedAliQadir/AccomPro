@@ -12,6 +12,7 @@ import PropertiesPage from "@/pages/properties";
 import PropertyDetailPage from "@/pages/property-detail";
 import TenantsPage from "@/pages/tenants";
 import TenantDetailPage from "@/pages/tenant-detail";
+import TenantOnboardingPage from "@/pages/tenant-onboarding";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoutes() {
@@ -20,6 +21,7 @@ function ProtectedRoutes() {
       <AppLayout>
         <Switch>
           <Route path="/" component={DashboardPage} />
+          <Route path="/tenants/new" component={TenantOnboardingPage} />
           <Route path="/tenants/:id" component={TenantDetailPage} />
           <Route path="/tenants" component={TenantsPage} />
           <Route path="/properties/:id" component={PropertyDetailPage} />
