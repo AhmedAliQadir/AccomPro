@@ -159,19 +159,113 @@ router.get('/:id', async (req: AuthRequest, res) => {
 
 router.post('/', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(createTenantSchema), async (req: AuditableRequest, res) => {
   try {
-    const { nationalId, ...rest } = req.body;
-    const data: any = { ...rest };
+    const { 
+      nationalId,
+      // Profile fields
+      title,
+      nationality,
+      previousAddress,
+      languagesSpoken,
+      // Financial fields
+      benefitType,
+      benefitAmount,
+      benefitFrequency,
+      // Emergency contact fields
+      nextOfKinName,
+      nextOfKinRelationship,
+      nextOfKinAddress,
+      nextOfKinPhone,
+      // Professional contacts
+      doctorName,
+      doctorPhone,
+      hasProbationOfficer,
+      probationOfficerName,
+      probationOfficerPhone,
+      ...coreFields
+    } = req.body;
     
-    if (data.dateOfBirth && typeof data.dateOfBirth === 'string') {
-      data.dateOfBirth = new Date(data.dateOfBirth);
+    // Helper function to convert empty strings to undefined
+    const sanitize = (value: any) => (value === '' ? undefined : value);
+    
+    // Prepare core tenant data
+    const tenantData: any = {
+      firstName: coreFields.firstName,
+      lastName: coreFields.lastName,
+      email: sanitize(coreFields.email),
+      phone: sanitize(coreFields.phone),
+      dateOfBirth: coreFields.dateOfBirth,
+      nationalInsuranceNumber: sanitize(nationalId),
+    };
+    
+    if (tenantData.dateOfBirth && typeof tenantData.dateOfBirth === 'string') {
+      tenantData.dateOfBirth = new Date(tenantData.dateOfBirth);
     }
     
-    if (nationalId) {
-      data.nationalInsuranceNumber = nationalId;
+    // Build nested creation data
+    const createData: any = {
+      ...tenantData,
+    };
+    
+    // Always add profile if any fields are provided
+    const hasProfileData = title || nationality || previousAddress || languagesSpoken;
+    if (hasProfileData) {
+      createData.profile = {
+        create: {
+          title: sanitize(title),
+          nationality: sanitize(nationality),
+          previousAddress: sanitize(previousAddress),
+          languagesSpoken: sanitize(languagesSpoken),
+        }
+      };
+    }
+    
+    // Always add finance if any financial fields provided
+    const hasFinanceData = benefitType || benefitAmount || benefitFrequency;
+    if (hasFinanceData) {
+      createData.finance = {
+        create: {
+          benefitType: sanitize(benefitType),
+          benefitAmount: benefitAmount,
+          benefitFrequency: sanitize(benefitFrequency),
+        }
+      };
+    }
+    
+    // Add emergency contact if name provided
+    if (nextOfKinName && nextOfKinName.trim()) {
+      createData.emergencyContacts = {
+        create: [{
+          name: nextOfKinName.trim(),
+          relationship: sanitize(nextOfKinRelationship) || '',
+          address: sanitize(nextOfKinAddress),
+          phone: sanitize(nextOfKinPhone),
+          isPrimary: true,
+        }]
+      };
+    }
+    
+    // Always add risk assessment if any professional contact data provided
+    const hasRiskData = doctorName || doctorPhone || hasProbationOfficer || probationOfficerName || probationOfficerPhone;
+    if (hasRiskData) {
+      createData.riskAssessment = {
+        create: {
+          doctorName: sanitize(doctorName),
+          doctorPhone: sanitize(doctorPhone),
+          hasProbationOfficer: hasProbationOfficer || false,
+          probationOfficerName: sanitize(probationOfficerName),
+          probationOfficerPhone: sanitize(probationOfficerPhone),
+        }
+      };
     }
     
     const tenant = await prisma.tenant.create({
-      data,
+      data: createData,
+      include: {
+        profile: true,
+        finance: true,
+        emergencyContacts: true,
+        riskAssessment: true,
+      }
     });
 
     req.auditLog = {

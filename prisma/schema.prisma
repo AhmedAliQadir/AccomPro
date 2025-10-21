@@ -353,7 +353,11 @@ model TenantRiskAssessment {
   hasSocialWorker         Boolean  @default(false)
   socialWorkerDetails     String?
   hasProbationOfficer     Boolean  @default(false)
+  probationOfficerName    String?
+  probationOfficerPhone   String?
   probationDetails        String?
+  doctorName              String?
+  doctorPhone             String?
   riskNotes               String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt

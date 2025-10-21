@@ -2,15 +2,37 @@ import { z } from 'zod';
 import { TenantStatus } from '@prisma/client';
 
 export const createTenantSchema = z.object({
+  // Core tenant fields
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().optional().or(z.literal('')),
   dateOfBirth: z.string().or(z.date()).transform(val => new Date(val)),
-  nationalId: z.string().optional(),
-  supportLevel: z.string().optional(),
-  medicalNotes: z.string().optional(),
-  emergencyContact: z.string().optional(),
+  nationalId: z.string().optional().or(z.literal('')),
+  
+  // Profile fields
+  title: z.string().optional().or(z.literal('')),
+  nationality: z.string().optional().or(z.literal('')),
+  previousAddress: z.string().optional().or(z.literal('')),
+  languagesSpoken: z.string().optional().or(z.literal('')),
+  
+  // Financial fields
+  benefitType: z.string().optional().or(z.literal('')),
+  benefitAmount: z.number().optional(),
+  benefitFrequency: z.string().optional().or(z.literal('')),
+  
+  // Emergency contact fields
+  nextOfKinName: z.string().optional().or(z.literal('')),
+  nextOfKinRelationship: z.string().optional().or(z.literal('')),
+  nextOfKinAddress: z.string().optional().or(z.literal('')),
+  nextOfKinPhone: z.string().optional().or(z.literal('')),
+  
+  // Professional contacts
+  doctorName: z.string().optional().or(z.literal('')),
+  doctorPhone: z.string().optional().or(z.literal('')),
+  hasProbationOfficer: z.boolean().optional(),
+  probationOfficerName: z.string().optional().or(z.literal('')),
+  probationOfficerPhone: z.string().optional().or(z.literal('')),
 });
 
 export const updateTenantSchema = createTenantSchema.partial();
