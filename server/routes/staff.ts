@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { prisma } from '../db';
+import { prisma } from '../prisma';
 import { authenticate, authorize } from '../middleware/auth';
 import { tenantContext, withTenantScope, type TenantRequest } from '../middleware/tenantContext';
 import { z } from 'zod';

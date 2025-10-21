@@ -36,6 +36,7 @@ router.post('/login', loginLimiter, validate(loginSchema), async (req, res) => {
       userId: user.id,
       email: user.email,
       role: user.role,
+      organizationId: user.organizationId,
     });
 
     res.cookie('auth_token', token, {
@@ -52,6 +53,7 @@ router.post('/login', loginLimiter, validate(loginSchema), async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        organizationId: user.organizationId,
       },
     });
   } catch (error) {
@@ -75,6 +77,7 @@ router.get('/me', authenticate, async (req: AuthRequest, res) => {
         firstName: true,
         lastName: true,
         role: true,
+        organizationId: true,
       },
     });
 

@@ -6,6 +6,9 @@ import tenantRoutes from "./routes/tenants";
 import documentRoutes from "./routes/documents";
 import reportRoutes from "./routes/reports";
 import roomRoutes from "./routes/rooms";
+import staffRoutes from "./routes/staff";
+import incidentsRoutes from "./routes/incidents";
+import complianceRoutes from "./routes/compliance";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
@@ -18,6 +21,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/documents", documentRoutes);
   app.use("/api/reports", reportRoutes);
   app.use("/api/rooms", roomRoutes);
+  
+  // Multi-tenant feature routes
+  app.use("/api/staff", staffRoutes);
+  app.use("/api/incidents", incidentsRoutes);
+  app.use("/api/compliance", complianceRoutes);
 
   // API health check
   app.get("/api/health", (req, res) => {
