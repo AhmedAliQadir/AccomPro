@@ -427,7 +427,8 @@ router.post('/:tenantId/check-ready', async (req: AuditableRequest, res) => {
   }
 });
 
-router.patch('/tenancies/:id/end', authorize('ADMIN', 'OPS'), async (req: AuthRequest & AuditableRequest, res) => {
+// End tenancy route (accessible via /api/tenancies/:id/end)
+router.patch('/:id/end', authorize('ADMIN', 'OPS'), async (req: AuthRequest & AuditableRequest, res) => {
   try {
     const { id } = req.params;
     const { endDate, endReason, endNotes } = req.body;

@@ -14,6 +14,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Main application routes
   app.use("/api/properties", propertyRoutes);
   app.use("/api/tenants", tenantRoutes);
+  app.use("/api/tenancies", tenantRoutes); // Mount tenancy routes separately
   app.use("/api/documents", documentRoutes);
   app.use("/api/reports", reportRoutes);
   app.use("/api/rooms", roomRoutes);
