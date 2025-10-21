@@ -21,6 +21,7 @@ function ProtectedRoutes() {
       <AppLayout>
         <Switch>
           <Route path="/" component={DashboardPage} />
+          <Route path="/dashboard" component={DashboardPage} />
           <Route path="/tenants/new" component={TenantOnboardingPage} />
           <Route path="/tenants/:id" component={TenantDetailPage} />
           <Route path="/tenants" component={TenantsPage} />

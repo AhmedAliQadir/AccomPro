@@ -94,9 +94,10 @@ export default function TenantOnboardingPage() {
     (p) => p.id === roomAssignment.propertyId
   );
 
-  const availableRooms = selectedProperty?.rooms.filter(
-    (room) => room._count.tenancies < room.capacity
-  ) || [];
+  const availableRooms = selectedProperty?.rooms.filter((room) => {
+    const tenancyCount = room._count?.tenancies ?? 0;
+    return tenancyCount < room.capacity;
+  }) || [];
 
   const handleStep1Next = () => {
     if (!tenantData.firstName || !tenantData.lastName || !tenantData.dateOfBirth) {

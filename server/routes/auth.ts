@@ -4,7 +4,7 @@ import { prisma } from '../prisma';
 import { signToken } from '../lib/jwt';
 import { validate } from '../middleware/validation';
 import { authenticate, AuthRequest } from '../middleware/auth';
-import { loginSchema, registerSchema } from '../schemas/auth';
+import { loginSchema } from '../schemas/auth';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();
@@ -15,54 +15,8 @@ const loginLimiter = rateLimit({
   message: 'Too many login attempts, please try again later',
 });
 
-router.post('/register', validate(registerSchema), async (req, res) => {
-  try {
-    const { email, password, firstName, lastName, role } = req.body;
-
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return res.status(409).json({ error: 'Email already registered' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        role: role || 'VIEWER',
-      },
-    });
-
-    const token = signToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    });
-
-    res.cookie('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed' });
-  }
-});
+// Public registration is disabled for security
+// Users must be created by administrators via the admin panel or database seeding
 
 router.post('/login', loginLimiter, validate(loginSchema), async (req, res) => {
   try {

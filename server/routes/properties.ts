@@ -26,6 +26,13 @@ router.get('/', async (req: AuthRequest, res) => {
           },
         },
         include: {
+          rooms: {
+            include: {
+              _count: {
+                select: { tenancies: { where: { isActive: true } } },
+              },
+            },
+          },
           _count: {
             select: { rooms: true },
           },
@@ -34,6 +41,13 @@ router.get('/', async (req: AuthRequest, res) => {
     } else {
       properties = await prisma.property.findMany({
         include: {
+          rooms: {
+            include: {
+              _count: {
+                select: { tenancies: { where: { isActive: true } } },
+              },
+            },
+          },
           _count: {
             select: { rooms: true },
           },

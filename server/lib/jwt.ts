@@ -1,5 +1,14 @@
 import jwt from 'jsonwebtoken';
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+if (!process.env.JWT_SECRET) {
+  if (!isDevelopment) {
+    throw new Error('JWT_SECRET environment variable is required in production');
+  }
+  console.warn('⚠️  WARNING: Using development fallback for JWT_SECRET. Set JWT_SECRET environment variable for production!');
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const JWT_EXPIRY = '7d';
 const DOWNLOAD_TOKEN_EXPIRY = '15m';

@@ -159,8 +159,14 @@ router.get('/:id', async (req: AuthRequest, res) => {
 
 router.post('/', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(createTenantSchema), async (req: AuditableRequest, res) => {
   try {
+    const data = { ...req.body };
+    
+    if (data.dateOfBirth && typeof data.dateOfBirth === 'string') {
+      data.dateOfBirth = new Date(data.dateOfBirth);
+    }
+    
     const tenant = await prisma.tenant.create({
-      data: req.body,
+      data,
     });
 
     req.auditLog = {
@@ -180,10 +186,15 @@ router.post('/', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(createTenantSche
 router.patch('/:id', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(updateTenantSchema), async (req: AuditableRequest, res) => {
   try {
     const { id } = req.params;
+    const data = { ...req.body };
+    
+    if (data.dateOfBirth && typeof data.dateOfBirth === 'string') {
+      data.dateOfBirth = new Date(data.dateOfBirth);
+    }
 
     const tenant = await prisma.tenant.update({
       where: { id },
-      data: req.body,
+      data,
     });
 
     req.auditLog = {
@@ -243,8 +254,18 @@ router.post('/:tenantId/tenancies', authorize('ADMIN', 'OPS'), validate(createTe
       return res.status(400).json({ error: 'Overlapping tenancies exceed room capacity' });
     }
 
+    const data = { ...req.body };
+    
+    if (data.startDate && typeof data.startDate === 'string') {
+      data.startDate = new Date(data.startDate);
+    }
+    
+    if (data.endDate && typeof data.endDate === 'string') {
+      data.endDate = new Date(data.endDate);
+    }
+
     const tenancy = await prisma.tenancy.create({
-      data: req.body,
+      data,
     });
 
     req.auditLog = {
