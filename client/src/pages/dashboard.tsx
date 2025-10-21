@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Building2, Home, FileCheck, UserCheck, Clock } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import AdminDashboard from './admin-dashboard';
+import SupportDashboard from './support-dashboard';
 
 interface DashboardStats {
   summary: {
@@ -23,6 +24,10 @@ export default function DashboardPage() {
   // Route to role-specific dashboards
   if (user?.role === 'ADMIN') {
     return <AdminDashboard />;
+  }
+  
+  if (user?.role === 'SUPPORT') {
+    return <SupportDashboard />;
   }
 
   // Default dashboard for OPS, VIEWER, and other roles

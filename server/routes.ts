@@ -11,6 +11,7 @@ import incidentsRoutes from "./routes/incidents";
 import complianceRoutes from "./routes/compliance";
 import organizationsRoutes from "./routes/organizations";
 import adminRoutes from "./routes/admin";
+import supportDashboardRoutes from "./routes/support-dashboard";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
@@ -32,6 +33,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/staff", staffRoutes);
   app.use("/api/incidents", incidentsRoutes);
   app.use("/api/compliance", complianceRoutes);
+  app.use("/api/support", supportDashboardRoutes);
 
   // API health check
   app.get("/api/health", (req, res) => {
