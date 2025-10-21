@@ -308,4 +308,83 @@ router.post('/:tenantId/check-ready', async (req: AuditableRequest, res) => {
   }
 });
 
+router.patch('/tenancies/:id/end', authorize('ADMIN', 'OPS'), async (req: AuthRequest & AuditableRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { endDate, endReason, endNotes } = req.body;
+    const { userId } = req.user!;
+
+    const tenancy = await prisma.tenancy.findUnique({
+      where: { id },
+      include: {
+        tenant: true,
+        room: {
+          include: {
+            property: true,
+          },
+        },
+      },
+    });
+
+    if (!tenancy) {
+      return res.status(404).json({ error: 'Tenancy not found' });
+    }
+
+    if (!tenancy.isActive) {
+      return res.status(400).json({ error: 'Tenancy is already ended' });
+    }
+
+    const updatedTenancy = await prisma.tenancy.update({
+      where: { id },
+      data: {
+        isActive: false,
+        endDate: endDate ? new Date(endDate) : new Date(),
+        endReason: endReason || 'Tenancy ended',
+        endNotes,
+        endedById: userId,
+      },
+      include: {
+        tenant: true,
+        room: {
+          include: {
+            property: true,
+          },
+        },
+      },
+    });
+
+    const hasOtherActiveTenancies = await prisma.tenancy.count({
+      where: {
+        tenantId: tenancy.tenantId,
+        isActive: true,
+        id: { not: id },
+      },
+    });
+
+    if (hasOtherActiveTenancies === 0) {
+      await prisma.tenant.update({
+        where: { id: tenancy.tenantId },
+        data: { status: 'MOVED_OUT' },
+      });
+    }
+
+    req.auditLog = {
+      action: 'END_TENANCY',
+      entityType: 'Tenancy',
+      entityId: id,
+      changes: {
+        endDate: endDate || new Date(),
+        endReason,
+        endNotes,
+        isActive: false,
+      },
+    };
+
+    res.json({ tenancy: updatedTenancy });
+  } catch (error) {
+    console.error('End tenancy error:', error);
+    res.status(500).json({ error: 'Failed to end tenancy' });
+  }
+});
+
 export default router;
