@@ -119,18 +119,33 @@ router.get('/:id', async (req: TenantRequest, res) => {
   }
 });
 
-router.post('/', authorize('ADMIN', 'OPS', 'ORG_ADMIN'), validate(createPropertySchema), async (req: AuditableRequest, res) => {
+router.post('/', authorize('ADMIN', 'OPS', 'ORG_ADMIN'), validate(createPropertySchema), async (req: TenantRequest, res) => {
   try {
-    // Extract organizationId from authenticated user
-    const organizationId = req.user?.organizationId;
+    const isPlatformAdmin = req.user?.role === 'ADMIN';
     
-    if (!organizationId) {
-      return res.status(403).json({ error: 'Organization context required' });
+    // Determine organizationId:
+    // - Platform admins can specify organizationId in request body OR use their own
+    // - Regular users must use their own organizationId
+    let organizationId: string;
+    
+    if (isPlatformAdmin && req.body.organizationId) {
+      // Platform admin specified which org to create for
+      organizationId = req.body.organizationId;
+    } else if (req.organizationId) {
+      // Use the user's organization
+      organizationId = req.organizationId;
+    } else {
+      return res.status(400).json({ 
+        error: 'Organization ID required. Platform admins must specify organizationId in request body.' 
+      });
     }
+
+    // Remove organizationId from body if present (we'll add it explicitly)
+    const { organizationId: _omit, ...propertyData } = req.body;
 
     const property = await prisma.property.create({
       data: {
-        ...req.body,
+        ...propertyData,
         organizationId,
       },
     });

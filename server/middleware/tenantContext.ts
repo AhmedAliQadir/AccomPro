@@ -26,12 +26,20 @@ export function tenantContext(
     req.organizationId = req.user.organizationId as string;
   }
 
-  // CRITICAL SECURITY: Always require organizationId to prevent cross-tenant data leakage
-  if (!req.organizationId) {
-    console.error('🚨 SECURITY: Request without organization context:', req.path);
+  // SECURITY: Require organizationId for all users EXCEPT platform admins (ADMIN role)
+  // Platform admins can access data across all organizations for management purposes
+  const isPlatformAdmin = req.user?.role === 'ADMIN';
+  
+  if (!req.organizationId && !isPlatformAdmin) {
+    console.error('🚨 SECURITY: Request without organization context:', req.path, 'Role:', req.user?.role);
     return res.status(403).json({ 
       error: 'Organization context required. User account must be associated with an organization.' 
     });
+  }
+
+  // Log when platform admin accesses cross-organization data
+  if (isPlatformAdmin && !req.organizationId) {
+    console.log('🔓 Platform Admin accessing cross-organization data:', req.path);
   }
 
   next();
@@ -40,8 +48,9 @@ export function tenantContext(
 /**
  * Helper function to add organizationId to Prisma queries
  * 
- * SECURITY: This function enforces tenant isolation by requiring organizationId.
- * It will throw an error if organizationId is missing, preventing unscoped queries.
+ * SECURITY: This function enforces tenant isolation by adding organizationId filter.
+ * - For regular users (OPS, ORG_ADMIN, SUPPORT, etc.): Requires organizationId
+ * - For platform admins (ADMIN role): Optional - allows cross-organization queries
  * 
  * Usage in route handlers:
  * 
@@ -52,15 +61,25 @@ export function tenantContext(
 export function withTenantScope<T extends object>(
   req: TenantRequest,
   where?: T
-): T & { organizationId: string } {
-  if (!req.organizationId) {
+): T & { organizationId?: string } {
+  // Platform admins (ADMIN role) can access data across all organizations
+  const isPlatformAdmin = req.user?.role === 'ADMIN';
+  
+  if (!req.organizationId && !isPlatformAdmin) {
     throw new Error('CRITICAL: withTenantScope called without organizationId - this should never happen if tenantContext middleware is properly applied');
   }
   
-  return {
-    ...where,
-    organizationId: req.organizationId,
-  } as T & { organizationId: string };
+  // If organizationId exists, add it to the filter
+  // If platform admin without organizationId, return unfiltered (cross-org access)
+  if (req.organizationId) {
+    return {
+      ...where,
+      organizationId: req.organizationId,
+    } as T & { organizationId: string };
+  }
+  
+  // Platform admin without organizationId - no organization filter (cross-org access)
+  return where as T & { organizationId?: string };
 }
 
 /**
