@@ -13,6 +13,8 @@ import PropertyDetailPage from "@/pages/property-detail";
 import TenantsPage from "@/pages/tenants";
 import TenantDetailPage from "@/pages/tenant-detail";
 import TenantOnboardingPage from "@/pages/tenant-onboarding";
+import RoomsPage from "@/pages/rooms";
+import ReportsPage from "@/pages/reports";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoutes() {
@@ -27,8 +29,8 @@ function ProtectedRoutes() {
           <Route path="/tenants" component={TenantsPage} />
           <Route path="/properties/:id" component={PropertyDetailPage} />
           <Route path="/properties" component={PropertiesPage} />
-          <Route path="/rooms" component={() => <div className="p-8">Rooms Page</div>} />
-          <Route path="/reports" component={() => <div className="p-8">Reports Page</div>} />
+          <Route path="/rooms" component={RoomsPage} />
+          <Route path="/reports" component={ReportsPage} />
           <Route component={NotFound} />
         </Switch>
       </AppLayout>

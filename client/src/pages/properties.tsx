@@ -6,12 +6,23 @@ import { useAuth } from '@/lib/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, MapPin, Home, Users } from 'lucide-react';
+import { Plus, MapPin, Home, Users, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface Property {
   id: string;
@@ -156,11 +167,34 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
 
 export default function PropertiesPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { data, isLoading } = useQuery<{ properties: Property[] }>({
     queryKey: ['/api/properties'],
   });
 
   const canCreate = user?.role === 'ADMIN' || user?.role === 'OPS';
+  const canDelete = user?.role === 'ADMIN';
+
+  const deleteMutation = useMutation({
+    mutationFn: async (propertyId: string) => {
+      const response = await apiRequest('DELETE', `/api/properties/${propertyId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/properties'] });
+      toast({
+        title: 'Property deleted',
+        description: 'The property has been deleted successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to delete property',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
   if (isLoading) {
     return (
@@ -217,9 +251,9 @@ export default function PropertiesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {properties.map((property) => (
-            <Link key={property.id} href={`/properties/${property.id}`}>
-              <a>
-                <Card className="hover-elevate active-elevate-2 h-full">
+            <Card key={property.id} className="hover-elevate active-elevate-2 h-full">
+              <Link href={`/properties/${property.id}`}>
+                <a className="block">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Home className="h-5 w-5 text-primary" />
@@ -230,7 +264,7 @@ export default function PropertiesPage() {
                       <span className="line-clamp-2">{property.address}, {property.postcode}</span>
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-3">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-1">
                         <Home className="h-4 w-4 text-muted-foreground" />
@@ -242,9 +276,44 @@ export default function PropertiesPage() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              </a>
-            </Link>
+                </a>
+              </Link>
+              {canDelete && (
+                <CardContent className="pt-0">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="w-full"
+                        onClick={(e) => e.stopPropagation()}
+                        data-testid={`button-delete-property-${property.id}`}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Property
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Property</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{property.name}"? This action cannot be undone and will also delete all associated rooms.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteMutation.mutate(property.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </CardContent>
+              )}
+            </Card>
           ))}
         </div>
       )}
