@@ -18,6 +18,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { name: 'Tenants', href: '/tenants', icon: Users },
     { name: 'Properties', href: '/properties', icon: Building2 },
     { name: 'Rooms', href: '/rooms', icon: Home },
     { name: 'Reports', href: '/reports', icon: FileText },
