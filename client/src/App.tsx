@@ -8,6 +8,10 @@ import { AuthProvider, RequireAuth } from "@/lib/auth";
 import { AppLayout } from "@/components/layout";
 import LoginPage from "@/pages/login";
 import DashboardPage from "@/pages/dashboard";
+import PropertiesPage from "@/pages/properties";
+import PropertyDetailPage from "@/pages/property-detail";
+import TenantsPage from "@/pages/tenants";
+import TenantDetailPage from "@/pages/tenant-detail";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoutes() {
@@ -16,8 +20,10 @@ function ProtectedRoutes() {
       <AppLayout>
         <Switch>
           <Route path="/" component={DashboardPage} />
-          <Route path="/tenants" component={() => <div className="p-8">Tenants Page</div>} />
-          <Route path="/properties" component={() => <div className="p-8">Properties Page</div>} />
+          <Route path="/tenants/:id" component={TenantDetailPage} />
+          <Route path="/tenants" component={TenantsPage} />
+          <Route path="/properties/:id" component={PropertyDetailPage} />
+          <Route path="/properties" component={PropertiesPage} />
           <Route path="/rooms" component={() => <div className="p-8">Rooms Page</div>} />
           <Route path="/reports" component={() => <div className="p-8">Reports Page</div>} />
           <Route component={NotFound} />
