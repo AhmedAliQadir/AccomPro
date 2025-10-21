@@ -160,12 +160,40 @@ router.delete('/:id', authorize('ADMIN'), async (req: AuditableRequest, res) => 
   try {
     const { id } = req.params;
 
-    const roomsCount = await prisma.room.count({
-      where: { propertyId: id },
+    const property = await prisma.property.findUnique({
+      where: { id },
+      include: {
+        rooms: {
+          include: {
+            tenancies: {
+              where: { isActive: true },
+            },
+          },
+        },
+      },
     });
 
-    if (roomsCount > 0) {
-      return res.status(400).json({ error: 'Cannot delete property with existing rooms' });
+    if (!property) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+
+    const activeTenanciesCount = property.rooms.reduce(
+      (sum, room) => sum + room.tenancies.length,
+      0
+    );
+
+    if (activeTenanciesCount > 0) {
+      return res.status(400).json({
+        error: 'Cannot delete property with active tenancies',
+        details: `This property has ${activeTenanciesCount} active tenancy/tenancies`,
+      });
+    }
+
+    if (property.rooms.length > 0) {
+      return res.status(400).json({
+        error: 'Cannot delete property with existing rooms',
+        details: `This property has ${property.rooms.length} room(s). Please delete all rooms first.`,
+      });
     }
 
     await prisma.property.delete({

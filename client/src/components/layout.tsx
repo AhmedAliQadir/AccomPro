@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Link, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,7 +13,7 @@ import {
 import { Building2, LayoutDashboard, Users, Home, FileText, LogOut, User } from 'lucide-react';
 
 export function AppLayout({ children }: { children: ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
 
   const navigation = [
@@ -34,30 +34,29 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <header className="border-b bg-card">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-6">
-            <Link href="/">
-              <a className="flex items-center gap-2 text-xl font-bold hover-elevate active-elevate-2 px-2 py-1 rounded-md">
-                <Building2 className="h-6 w-6 text-primary" />
-                <span>AccomPro</span>
-              </a>
-            </Link>
+            <div
+              className="flex items-center gap-2 text-xl font-bold hover-elevate active-elevate-2 px-2 py-1 rounded-md cursor-pointer"
+              onClick={() => setLocation('/')}
+            >
+              <Building2 className="h-6 w-6 text-primary" />
+              <span>AccomPro</span>
+            </div>
             <nav className="hidden md:flex gap-1">
               {navigation.map((item) => {
                 const isActive = location === item.href || 
                   (item.href !== '/' && location.startsWith(item.href));
                 return (
-                  <Link key={item.name} href={item.href}>
-                    <a>
-                      <Button
-                        variant={isActive ? 'secondary' : 'ghost'}
-                        size="sm"
-                        className="gap-2"
-                        data-testid={`nav-${item.name.toLowerCase()}`}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        {item.name}
-                      </Button>
-                    </a>
-                  </Link>
+                  <Button
+                    key={item.name}
+                    variant={isActive ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setLocation(item.href)}
+                    data-testid={`nav-${item.name.toLowerCase()}`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.name}
+                  </Button>
                 );
               })}
             </nav>

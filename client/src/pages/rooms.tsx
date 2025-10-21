@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'wouter';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bed, Building2, MapPin, Users } from 'lucide-react';
@@ -20,6 +20,7 @@ interface Room {
 }
 
 export default function RoomsPage() {
+  const [, setLocation] = useLocation();
   const { data, isLoading } = useQuery<{ rooms: Room[] }>({
     queryKey: ['/api/rooms'],
   });
@@ -76,43 +77,43 @@ export default function RoomsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {rooms.map((room) => (
-            <Link key={room.id} href={`/properties/${room.property.id}`}>
-              <a>
-                <Card className="hover-elevate active-elevate-2 h-full">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Bed className="h-5 w-5 text-primary" />
-                        Room {room.roomNumber}
-                      </div>
-                      <Badge variant={room._count.tenancies < room.capacity ? 'default' : 'secondary'}>
-                        {room._count.tenancies < room.capacity ? 'Available' : 'Full'}
-                      </Badge>
-                    </CardTitle>
-                    <CardDescription className="flex items-start gap-1">
-                      <Building2 className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                      <span className="line-clamp-1">{room.property.name}</span>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-start gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                      <span className="line-clamp-2">{room.property.address}</span>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <span>Floor {room.floor}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-muted-foreground">Capacity:</span>
-                        <span className="font-medium">{room._count.tenancies} / {room.capacity}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </a>
-            </Link>
+            <Card
+              key={room.id}
+              className="hover-elevate active-elevate-2 h-full cursor-pointer"
+              onClick={() => setLocation(`/properties/${room.property.id}`)}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Bed className="h-5 w-5 text-primary" />
+                    Room {room.roomNumber}
+                  </div>
+                  <Badge variant={room._count.tenancies < room.capacity ? 'default' : 'secondary'}>
+                    {room._count.tenancies < room.capacity ? 'Available' : 'Full'}
+                  </Badge>
+                </CardTitle>
+                <CardDescription className="flex items-start gap-1">
+                  <Building2 className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                  <span className="line-clamp-1">{room.property.name}</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-start gap-1 text-sm text-muted-foreground">
+                  <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                  <span className="line-clamp-2">{room.property.address}</span>
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>Floor {room.floor}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-muted-foreground">Capacity:</span>
+                    <span className="font-medium">{room._count.tenancies} / {room.capacity}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Link } from 'wouter';
+import { useLocation } from 'wouter';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -168,6 +168,7 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
 export default function PropertiesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const { data, isLoading } = useQuery<{ properties: Property[] }>({
     queryKey: ['/api/properties'],
   });
@@ -251,33 +252,34 @@ export default function PropertiesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {properties.map((property) => (
-            <Card key={property.id} className="hover-elevate active-elevate-2 h-full">
-              <Link href={`/properties/${property.id}`}>
-                <a className="block">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Home className="h-5 w-5 text-primary" />
-                      {property.name}
-                    </CardTitle>
-                    <CardDescription className="flex items-start gap-1">
-                      <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                      <span className="line-clamp-2">{property.address}, {property.postcode}</span>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1">
-                        <Home className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{property._count.rooms} rooms</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{property.totalUnits} units</span>
-                      </div>
+            <Card key={property.id} className="h-full">
+              <div
+                className="hover-elevate active-elevate-2 cursor-pointer"
+                onClick={() => setLocation(`/properties/${property.id}`)}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Home className="h-5 w-5 text-primary" />
+                    {property.name}
+                  </CardTitle>
+                  <CardDescription className="flex items-start gap-1">
+                    <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span className="line-clamp-2">{property.address}, {property.postcode}</span>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1">
+                      <Home className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{property._count.rooms} rooms</span>
                     </div>
-                  </CardContent>
-                </a>
-              </Link>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{property.totalUnits} units</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </div>
               {canDelete && (
                 <CardContent className="pt-0">
                   <AlertDialog>
@@ -286,7 +288,6 @@ export default function PropertiesPage() {
                         variant="destructive"
                         size="sm"
                         className="w-full"
-                        onClick={(e) => e.stopPropagation()}
                         data-testid={`button-delete-property-${property.id}`}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
