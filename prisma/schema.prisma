@@ -27,6 +27,69 @@ enum DocumentType {
   PROOF_OF_INCOME
   SUPPORT_PLAN
   MEDICAL
+  AUTHORIZATION_FORM
+  CONFIDENTIALITY_WAIVER
+  FIRE_EVACUATION
+  LICENCE_AGREEMENT
+  MISSING_PERSON_FORM
+  NIL_INCOME_FORM
+  SERVICE_CHARGE_AGREEMENT
+  SUPPORT_AGREEMENT
+  SUPPORT_NEEDS_ASSESSMENT
+  PHOTO_ID_CONSENT
+  OTHER
+}
+
+enum Ethnicity {
+  WHITE_BRITISH
+  WHITE_IRISH
+  WHITE_OTHER
+  MIXED_WHITE_BLACK_CARIBBEAN
+  MIXED_WHITE_BLACK_AFRICAN
+  MIXED_WHITE_ASIAN
+  MIXED_OTHER
+  ASIAN_INDIAN
+  ASIAN_PAKISTANI
+  ASIAN_BANGLADESHI
+  ASIAN_OTHER
+  BLACK_CARIBBEAN
+  BLACK_AFRICAN
+  BLACK_OTHER
+  CHINESE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum Religion {
+  NO_RELIGION
+  CHRISTIAN
+  MUSLIM
+  HINDU
+  SIKH
+  JEWISH
+  BUDDHIST
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum SexualOrientation {
+  HETEROSEXUAL
+  HOMOSEXUAL
+  LESBIAN
+  BISEXUAL
+  TRANSGENDER
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum IncomeSource {
+  ESA
+  DLA
+  JSA
+  UNIVERSAL_CREDIT
+  HOUSING_BENEFIT
+  NIL_INCOME
+  EMPLOYMENT
   OTHER
 }
 
@@ -51,19 +114,22 @@ model User {
   auditLogs           AuditLog[]
   documentsUploaded   Document[]   @relation("DocumentUploader")
   documentsVerified   Document[]   @relation("DocumentVerifier")
+  tenanciesEnded      Tenancy[]    @relation("TenancyEndedBy")
 
   @@map("users")
 }
 
 model Property {
-  id          String   @id @default(uuid())
-  name        String
-  address     String
-  postcode    String
-  totalUnits  Int
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                  String   @id @default(uuid())
+  name                String
+  address             String
+  postcode            String
+  totalUnits          Int
+  description         String?
+  serviceChargeAmount Decimal? @db.Decimal(10, 2)
+  serviceChargeNotes  String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   rooms       Room[]
   assignments Assignment[]
@@ -110,33 +176,40 @@ model Tenant {
   email           String?
   phone           String?
   dateOfBirth     DateTime
-  nationalId      String?
+  nationalInsuranceNumber String?
   status          TenantStatus @default(PENDING)
-  supportLevel    String?
-  medicalNotes    String?
-  emergencyContact String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  tenancies  Tenancy[]
-  documents  Document[]
+  tenancies         Tenancy[]
+  documents         Document[]
+  profile           TenantProfile?
+  emergencyContacts TenantEmergencyContact[]
+  finance           TenantFinance?
+  riskAssessment    TenantRiskAssessment?
+  supportPlan       TenantSupportPlan?
+  consents          TenantConsent?
 
   @@map("tenants")
 }
 
 model Tenancy {
-  id        String    @id @default(uuid())
-  tenantId  String
-  roomId    String
-  startDate DateTime
-  endDate   DateTime?
-  isActive  Boolean   @default(true)
-  rentAmount Decimal? @db.Decimal(10, 2)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id                  String    @id @default(uuid())
+  tenantId            String
+  roomId              String
+  startDate           DateTime
+  endDate             DateTime?
+  isActive            Boolean   @default(true)
+  serviceChargeAmount Decimal   @db.Decimal(10, 2)
+  endReason           String?
+  endNotes            String?
+  endedById           String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   room      Room      @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  endedBy   User?     @relation("TenancyEndedBy", fields: [endedById], references: [id], onDelete: SetNull)
 
   @@map("tenancies")
 }
@@ -198,4 +271,146 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model TenantProfile {
+  id                   String              @id @default(uuid())
+  tenantId             String              @unique
+  title                String?
+  otherNames           String?
+  placeOfBirth         String?
+  previousAddress      String?
+  nationality          String?
+  languagesSpoken      String?
+  ethnicity            Ethnicity?
+  religion             Religion?
+  sexualOrientation    SexualOrientation?
+  maritalStatus        String?
+  currentSituation     String?
+  homelessnessReason   String?
+  disabilities         String?
+  communicationNeeds   String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  tenant               Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_profiles")
+}
+
+model TenantEmergencyContact {
+  id            String   @id @default(uuid())
+  tenantId      String
+  name          String
+  relationship  String
+  address       String?
+  phone         String?
+  mobile        String?
+  isPrimary     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_emergency_contacts")
+}
+
+model TenantFinance {
+  id                 String        @id @default(uuid())
+  tenantId           String        @unique
+  incomeSource       IncomeSource?
+  benefitType        String?
+  benefitAmount      Decimal?      @db.Decimal(10, 2)
+  benefitFrequency   String?
+  hasNilIncome       Boolean       @default(false)
+  employmentDetails  String?
+  debtDetails        String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  tenant             Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_finance")
+}
+
+model TenantRiskAssessment {
+  id                      String   @id @default(uuid())
+  tenantId                String   @unique
+  hasCriminalRecord       Boolean  @default(false)
+  criminalRecordDetails   String?
+  hasDrugUse              Boolean  @default(false)
+  drugUseDetails          String?
+  hasAlcoholIssue         Boolean  @default(false)
+  alcoholDetails          String?
+  hasSuicidalThoughts     Boolean  @default(false)
+  suicidalThoughtsDetails String?
+  hasSelfHarmHistory      Boolean  @default(false)
+  selfHarmDetails         String?
+  hasMentalHealth         Boolean  @default(false)
+  mentalHealthDetails     String?
+  mentalHealthDiagnosis   String?
+  prescribedMedication    String?
+  hasSocialWorker         Boolean  @default(false)
+  socialWorkerDetails     String?
+  hasProbationOfficer     Boolean  @default(false)
+  probationDetails        String?
+  riskNotes               String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  tenant                  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_risk_assessments")
+}
+
+model TenantSupportPlan {
+  id                  String   @id @default(uuid())
+  tenantId            String   @unique
+  supportNeeds        String?
+  supportGoals        String?
+  budgetPlanAgreed    Boolean  @default(false)
+  employmentSupport   Boolean  @default(false)
+  lifeSkillsSupport   Boolean  @default(false)
+  healthSupport       Boolean  @default(false)
+  reviewFrequency     String?
+  lastReviewDate      DateTime?
+  nextReviewDate      DateTime?
+  supportWorkerNotes  String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_support_plans")
+}
+
+model TenantConsent {
+  id                           String    @id @default(uuid())
+  tenantId                     String    @unique
+  authorizationFormSigned      Boolean   @default(false)
+  authorizationFormSignedAt    DateTime?
+  confidentialityWaiverSigned  Boolean   @default(false)
+  confidentialityWaiverSignedAt DateTime?
+  fireEvacuationAcknowledged   Boolean   @default(false)
+  fireEvacuationAcknowledgedAt DateTime?
+  licenceAgreementSigned       Boolean   @default(false)
+  licenceAgreementSignedAt     DateTime?
+  missingPersonFormSigned      Boolean   @default(false)
+  missingPersonFormSignedAt    DateTime?
+  nilIncomeFormSigned          Boolean   @default(false)
+  nilIncomeFormSignedAt        DateTime?
+  serviceChargeAgreementSigned Boolean   @default(false)
+  serviceChargeAgreementSignedAt DateTime?
+  supportAgreementSigned       Boolean   @default(false)
+  supportAgreementSignedAt     DateTime?
+  supportNeedsAssessmentSigned Boolean   @default(false)
+  supportNeedsAssessmentSignedAt DateTime?
+  photoIdConsentGiven          Boolean   @default(false)
+  photoIdConsentGivenAt        DateTime?
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
+
+  tenant                       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_consents")
 }
