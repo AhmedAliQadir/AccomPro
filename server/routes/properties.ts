@@ -3,28 +3,30 @@ import { prisma } from '../prisma';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { createAuditLog, AuditableRequest } from '../middleware/audit';
+import { tenantContext, withTenantScope, type TenantRequest } from '../middleware/tenantContext';
 import { createPropertySchema, updatePropertySchema, createRoomSchema, updateRoomSchema } from '../schemas/property';
 
 const router = Router();
 
 router.use(authenticate);
+router.use(tenantContext); // Add multi-tenant filtering
 router.use(createAuditLog());
 
-router.get('/', async (req: AuthRequest, res) => {
+router.get('/', async (req: TenantRequest, res) => {
   try {
     const { role, userId } = req.user!;
 
     let properties;
     if (role === 'SUPPORT') {
       properties = await prisma.property.findMany({
-        where: {
+        where: withTenantScope(req, {
           assignments: {
             some: {
               userId,
               endDate: null,
             },
           },
-        },
+        }),
         include: {
           rooms: {
             include: {
@@ -40,6 +42,7 @@ router.get('/', async (req: AuthRequest, res) => {
       });
     } else {
       properties = await prisma.property.findMany({
+        where: withTenantScope(req),
         include: {
           rooms: {
             include: {
@@ -62,13 +65,16 @@ router.get('/', async (req: AuthRequest, res) => {
   }
 });
 
-router.get('/:id', async (req: AuthRequest, res) => {
+router.get('/:id', async (req: TenantRequest, res) => {
   try {
     const { id } = req.params;
     const { role, userId } = req.user!;
 
-    const property = await prisma.property.findUnique({
-      where: { id },
+    const property = await prisma.property.findFirst({
+      where: { 
+        id,
+        ...withTenantScope(req),
+      },
       include: {
         rooms: {
           include: {
@@ -113,10 +119,20 @@ router.get('/:id', async (req: AuthRequest, res) => {
   }
 });
 
-router.post('/', authorize('ADMIN', 'OPS'), validate(createPropertySchema), async (req: AuditableRequest, res) => {
+router.post('/', authorize('ADMIN', 'OPS', 'ORG_ADMIN'), validate(createPropertySchema), async (req: AuditableRequest, res) => {
   try {
+    // Extract organizationId from authenticated user
+    const organizationId = req.user?.organizationId;
+    
+    if (!organizationId) {
+      return res.status(403).json({ error: 'Organization context required' });
+    }
+
     const property = await prisma.property.create({
-      data: req.body,
+      data: {
+        ...req.body,
+        organizationId,
+      },
     });
 
     req.auditLog = {
