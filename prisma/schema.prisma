@@ -8,10 +8,19 @@ datasource db {
 }
 
 enum Role {
-  ADMIN
-  OPS
-  SUPPORT
-  VIEWER
+  ADMIN              // System-wide administrator
+  OPS                // Operations manager (organization-scoped)
+  SUPPORT            // Support worker (property-scoped)
+  VIEWER             // Read-only access
+  COMPLIANCE_OFFICER // Compliance and audit management
+  ORG_ADMIN          // Organization administrator (org-scoped admin)
+}
+
+enum SubscriptionTier {
+  FREE
+  BASIC
+  PROFESSIONAL
+  ENTERPRISE
 }
 
 enum TenantStatus {
@@ -99,28 +108,62 @@ enum DocumentStatus {
   REJECTED
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  firstName String
-  lastName  String
-  role      Role     @default(VIEWER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Organization {
+  id               String           @id @default(uuid())
+  name             String
+  subdomain        String           @unique
+  contactEmail     String
+  contactPhone     String?
+  address          String?
+  postcode         String?
+  subscriptionTier SubscriptionTier @default(BASIC)
+  isActive         Boolean          @default(true)
+  settings         Json?            // Branding, configuration, preferences
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
+  // Relations
+  users        User[]
+  properties   Property[]
+  residents    Tenant[]          // Will be renamed to Resident
+  documents    Document[]
+  auditLogs    AuditLog[]
+  staff        Staff[]
+  incidents    Incident[]
+  compliance   Compliance[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  organizationId String
+  email          String   @unique
+  password       String
+  firstName      String
+  lastName       String
+  role           Role     @default(VIEWER)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
   // Support workers can be assigned to properties
   propertyAssignments Assignment[]
   auditLogs           AuditLog[]
   documentsUploaded   Document[]   @relation("DocumentUploader")
   documentsVerified   Document[]   @relation("DocumentVerifier")
   tenanciesEnded      Tenancy[]    @relation("TenancyEndedBy")
+  incidentsReported   Incident[]   @relation("IncidentReporter")
 
+  @@index([organizationId])
   @@map("users")
 }
 
 model Property {
   id                  String   @id @default(uuid())
+  organizationId      String
   name                String
   address             String
   postcode            String
@@ -131,9 +174,11 @@ model Property {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  rooms       Room[]
-  assignments Assignment[]
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rooms        Room[]
+  assignments  Assignment[]
 
+  @@index([organizationId])
   @@map("properties")
 }
 
@@ -170,17 +215,19 @@ model Assignment {
 }
 
 model Tenant {
-  id              String       @id @default(uuid())
-  firstName       String
-  lastName        String
-  email           String?
-  phone           String?
-  dateOfBirth     DateTime
+  id                      String       @id @default(uuid())
+  organizationId          String
+  firstName               String
+  lastName                String
+  email                   String?
+  phone                   String?
+  dateOfBirth             DateTime
   nationalInsuranceNumber String?
-  status          TenantStatus @default(PENDING)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  status                  TenantStatus @default(PENDING)
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
 
+  organization      Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   tenancies         Tenancy[]
   documents         Document[]
   profile           TenantProfile?
@@ -189,7 +236,9 @@ model Tenant {
   riskAssessment    TenantRiskAssessment?
   supportPlan       TenantSupportPlan?
   consents          TenantConsent?
+  incidents         Incident[]
 
+  @@index([organizationId])
   @@map("tenants")
 }
 
@@ -215,27 +264,30 @@ model Tenancy {
 }
 
 model Document {
-  id              String         @id @default(uuid())
-  tenantId        String
-  type            DocumentType
-  status          DocumentStatus @default(PENDING)
-  fileName        String
-  fileSize        Int
-  mimeType        String
-  sha256Hash      String
-  uploadedById    String
-  uploadedAt      DateTime       @default(now())
-  verifiedById    String?
-  verifiedAt      DateTime?
+  id                String         @id @default(uuid())
+  organizationId    String
+  tenantId          String
+  type              DocumentType
+  status            DocumentStatus @default(PENDING)
+  fileName          String
+  fileSize          Int
+  mimeType          String
+  sha256Hash        String
+  uploadedById      String
+  uploadedAt        DateTime       @default(now())
+  verifiedById      String?
+  verifiedAt        DateTime?
   verificationNotes String?
-  rejectionReason String?
-  isMandatory     Boolean        @default(false)
+  rejectionReason   String?
+  isMandatory       Boolean        @default(false)
   
-  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  uploadedBy      User           @relation("DocumentUploader", fields: [uploadedById], references: [id])
-  verifiedBy      User?          @relation("DocumentVerifier", fields: [verifiedById], references: [id])
-  blob            DocumentBlob?
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  uploadedBy   User         @relation("DocumentUploader", fields: [uploadedById], references: [id])
+  verifiedBy   User?        @relation("DocumentVerifier", fields: [verifiedById], references: [id])
+  blob         DocumentBlob?
 
+  @@index([organizationId])
   @@index([tenantId])
   @@index([sha256Hash])
   @@map("documents")
@@ -255,18 +307,21 @@ model DocumentBlob {
 }
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  userId     String
-  action     String
-  entityType String
-  entityId   String?
-  changes    Json?
-  ipAddress  String?
-  userAgent  String?
-  createdAt  DateTime @default(now())
+  id             String   @id @default(uuid())
+  organizationId String
+  userId         String
+  action         String
+  entityType     String
+  entityId       String?
+  changes        Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
 
-  user       User      @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id])
 
+  @@index([organizationId])
   @@index([userId])
   @@index([entityType, entityId])
   @@index([createdAt])
@@ -417,4 +472,140 @@ model TenantConsent {
   tenant                       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("tenant_consents")
+}
+
+// New models for multi-tenant SaaS features
+
+enum IncidentType {
+  SAFEGUARDING
+  MEDICATION
+  ACCIDENT
+  NEAR_MISS
+  BEHAVIORAL
+  PROPERTY_DAMAGE
+  MISSING_PERSON
+  OTHER
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  REPORTED
+  UNDER_INVESTIGATION
+  RESOLVED
+  CLOSED
+}
+
+enum ComplianceStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+enum AuditType {
+  CQC_INSPECTION
+  INTERNAL_AUDIT
+  FIRE_SAFETY
+  HEALTH_SAFETY
+  SAFEGUARDING
+  MEDICATION
+  GDPR_COMPLIANCE
+  OTHER
+}
+
+model Staff {
+  id               String    @id @default(uuid())
+  organizationId   String
+  firstName        String
+  lastName         String
+  email            String?
+  phone            String?
+  jobTitle         String
+  dbsNumber        String?
+  dbsExpiryDate    DateTime?
+  dbsCheckDate     DateTime?
+  trainingRecords  Json?     // Array of {courseName, completedDate, expiryDate}
+  startDate        DateTime
+  endDate          DateTime?
+  isActive         Boolean   @default(true)
+  emergencyContact Json?     // {name, relationship, phone}
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([dbsExpiryDate])
+  @@map("staff")
+}
+
+model Incident {
+  id              String           @id @default(uuid())
+  organizationId  String
+  residentId      String?          // Optional - incident might not involve a resident
+  reportedById    String
+  incidentType    IncidentType
+  severity        IncidentSeverity
+  status          IncidentStatus   @default(REPORTED)
+  title           String
+  description     String
+  location        String?
+  witnessDetails  String?
+  actionsTaken    String?
+  followUpRequired Boolean         @default(false)
+  followUpNotes   String?
+  reportedAt      DateTime         @default(now())
+  occurredAt      DateTime?
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  resident     Tenant?      @relation(fields: [residentId], references: [id], onDelete: SetNull)
+  reporter     User         @relation("IncidentReporter", fields: [reportedById], references: [id])
+
+  @@index([organizationId])
+  @@index([residentId])
+  @@index([reportedById])
+  @@index([status])
+  @@index([reportedAt])
+  @@map("incidents")
+}
+
+model Compliance {
+  id                 String           @id @default(uuid())
+  organizationId     String
+  auditType          AuditType
+  status             ComplianceStatus @default(PENDING)
+  title              String
+  description        String?
+  auditDate          DateTime
+  auditorName        String?
+  auditorOrganization String?
+  findings           Json?            // Array of findings/observations
+  score              Int?             // Overall score if applicable
+  actionPlan         Json?            // Array of {action, responsible, dueDate, status}
+  evidenceDocuments  String[]         // Array of document IDs or file paths
+  dueDate            DateTime?
+  completedAt        DateTime?
+  completedBy        String?
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([auditType])
+  @@index([status])
+  @@index([auditDate])
+  @@map("compliance")
 }
