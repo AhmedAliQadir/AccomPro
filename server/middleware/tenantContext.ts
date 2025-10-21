@@ -26,12 +26,12 @@ export function tenantContext(
     req.organizationId = req.user.organizationId as string;
   }
 
-  // For development: if no organizationId, log warning but continue
-  // In production, you might want to return 403 for missing organizationId
+  // CRITICAL SECURITY: Always require organizationId to prevent cross-tenant data leakage
   if (!req.organizationId) {
-    console.warn('⚠️ Request without organization context:', req.path);
-    // Uncomment in production:
-    // return res.status(403).json({ error: 'Organization context required' });
+    console.error('🚨 SECURITY: Request without organization context:', req.path);
+    return res.status(403).json({ 
+      error: 'Organization context required. User account must be associated with an organization.' 
+    });
   }
 
   next();
@@ -39,6 +39,9 @@ export function tenantContext(
 
 /**
  * Helper function to add organizationId to Prisma queries
+ * 
+ * SECURITY: This function enforces tenant isolation by requiring organizationId.
+ * It will throw an error if organizationId is missing, preventing unscoped queries.
  * 
  * Usage in route handlers:
  * 
@@ -49,26 +52,46 @@ export function tenantContext(
 export function withTenantScope<T extends object>(
   req: TenantRequest,
   where?: T
-): T & { organizationId?: string } {
+): T & { organizationId: string } {
+  if (!req.organizationId) {
+    throw new Error('CRITICAL: withTenantScope called without organizationId - this should never happen if tenantContext middleware is properly applied');
+  }
+  
   return {
     ...where,
-    ...(req.organizationId ? { organizationId: req.organizationId } : {}),
-  } as T & { organizationId?: string };
+    organizationId: req.organizationId,
+  } as T & { organizationId: string };
 }
 
 /**
  * Validates that a resource belongs to the current organization
- * Throws 403 if the resource doesn't match the user's organization
+ * 
+ * Use this after fetching a single resource to ensure cross-tenant access is prevented
+ * even if future code bypasses withTenantScope.
+ * 
+ * @throws TenantAccessError with appropriate HTTP status code (404 or 403)
  */
+export class TenantAccessError extends Error {
+  statusCode: number;
+  
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.name = 'TenantAccessError';
+    this.statusCode = statusCode;
+  }
+}
+
 export function validateTenantAccess(
   req: TenantRequest,
   resource: { organizationId?: string } | null
 ): void {
   if (!resource) {
-    throw new Error('Resource not found');
+    // Return 404 for not found (don't reveal whether it exists in another org)
+    throw new TenantAccessError('Resource not found', 404);
   }
 
   if (req.organizationId && resource.organizationId !== req.organizationId) {
-    throw new Error('Access denied: Resource belongs to different organization');
+    // Return 404 (not 403) to avoid leaking information about other orgs' data
+    throw new TenantAccessError('Resource not found', 404);
   }
 }
