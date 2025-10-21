@@ -10,6 +10,7 @@ import staffRoutes from "./routes/staff";
 import incidentsRoutes from "./routes/incidents";
 import complianceRoutes from "./routes/compliance";
 import organizationsRoutes from "./routes/organizations";
+import adminRoutes from "./routes/admin";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
@@ -17,6 +18,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Platform admin routes
   app.use("/api/organizations", organizationsRoutes);
+  app.use("/api/admin", adminRoutes);
   
   // Main application routes
   app.use("/api/properties", propertyRoutes);

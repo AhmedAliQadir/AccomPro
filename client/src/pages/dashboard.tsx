@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Building2, Home, FileCheck, UserCheck, Clock } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
+import AdminDashboard from './admin-dashboard';
 
 interface DashboardStats {
   summary: {
@@ -16,6 +18,14 @@ interface DashboardStats {
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+
+  // Route to role-specific dashboards
+  if (user?.role === 'ADMIN') {
+    return <AdminDashboard />;
+  }
+
+  // Default dashboard for OPS, VIEWER, and other roles
   const { data, isLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/reports/dashboard'],
   });
