@@ -9,10 +9,14 @@ import roomRoutes from "./routes/rooms";
 import staffRoutes from "./routes/staff";
 import incidentsRoutes from "./routes/incidents";
 import complianceRoutes from "./routes/compliance";
+import organizationsRoutes from "./routes/organizations";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
   app.use("/api/auth", authRoutes);
+  
+  // Platform admin routes
+  app.use("/api/organizations", organizationsRoutes);
   
   // Main application routes
   app.use("/api/properties", propertyRoutes);
