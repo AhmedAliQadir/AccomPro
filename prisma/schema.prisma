@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  OPS
+  SUPPORT
+  VIEWER
+}
+
+enum TenantStatus {
+  PENDING
+  READY_FOR_TENANCY
+  ACTIVE
+  NOTICE_GIVEN
+  MOVED_OUT
+}
+
+enum DocumentType {
+  PROOF_OF_ID
+  PROOF_OF_INCOME
+  SUPPORT_PLAN
+  MEDICAL
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role     @default(VIEWER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Support workers can be assigned to properties
+  propertyAssignments Assignment[]
+  auditLogs           AuditLog[]
+  documentsUploaded   Document[]   @relation("DocumentUploader")
+  documentsVerified   Document[]   @relation("DocumentVerifier")
+
+  @@map("users")
+}
+
+model Property {
+  id          String   @id @default(uuid())
+  name        String
+  address     String
+  postcode    String
+  totalUnits  Int
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rooms       Room[]
+  assignments Assignment[]
+
+  @@map("properties")
+}
+
+model Room {
+  id         String   @id @default(uuid())
+  propertyId String
+  roomNumber String
+  capacity   Int      @default(1)
+  floor      Int?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  property   Property   @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  tenancies  Tenancy[]
+
+  @@unique([propertyId, roomNumber])
+  @@map("rooms")
+}
+
+model Assignment {
+  id         String   @id @default(uuid())
+  userId     String
+  propertyId String
+  startDate  DateTime @default(now())
+  endDate    DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("assignments")
+}
+
+model Tenant {
+  id              String       @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String?
+  phone           String?
+  dateOfBirth     DateTime
+  nationalId      String?
+  status          TenantStatus @default(PENDING)
+  supportLevel    String?
+  medicalNotes    String?
+  emergencyContact String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  tenancies  Tenancy[]
+  documents  Document[]
+
+  @@map("tenants")
+}
+
+model Tenancy {
+  id        String    @id @default(uuid())
+  tenantId  String
+  roomId    String
+  startDate DateTime
+  endDate   DateTime?
+  isActive  Boolean   @default(true)
+  rentAmount Decimal? @db.Decimal(10, 2)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  room      Room      @relation(fields: [roomId], references: [id], onDelete: Restrict)
+
+  @@map("tenancies")
+}
+
+model Document {
+  id              String         @id @default(uuid())
+  tenantId        String
+  type            DocumentType
+  status          DocumentStatus @default(PENDING)
+  fileName        String
+  fileSize        Int
+  mimeType        String
+  sha256Hash      String
+  uploadedById    String
+  uploadedAt      DateTime       @default(now())
+  verifiedById    String?
+  verifiedAt      DateTime?
+  verificationNotes String?
+  rejectionReason String?
+  isMandatory     Boolean        @default(false)
+  
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  uploadedBy      User           @relation("DocumentUploader", fields: [uploadedById], references: [id])
+  verifiedBy      User?          @relation("DocumentVerifier", fields: [verifiedById], references: [id])
+  blob            DocumentBlob?
+
+  @@index([tenantId])
+  @@index([sha256Hash])
+  @@map("documents")
+}
+
+model DocumentBlob {
+  id            String   @id @default(uuid())
+  documentId    String   @unique
+  encryptedData Bytes
+  iv            String
+  authTag       String
+  createdAt     DateTime @default(now())
+
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("document_blobs")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  action     String
+  entityType String
+  entityId   String?
+  changes    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user       User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
