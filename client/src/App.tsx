@@ -15,6 +15,7 @@ import TenantDetailPage from "@/pages/tenant-detail";
 import TenantOnboardingPage from "@/pages/tenant-onboarding";
 import RoomsPage from "@/pages/rooms";
 import ReportsPage from "@/pages/reports";
+import IncidentsPage from "@/pages/incidents";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoutes() {
@@ -31,6 +32,7 @@ function ProtectedRoutes() {
           <Route path="/properties" component={PropertiesPage} />
           <Route path="/rooms" component={RoomsPage} />
           <Route path="/reports" component={ReportsPage} />
+          <Route path="/incidents" component={IncidentsPage} />
           <Route component={NotFound} />
         </Switch>
       </AppLayout>
