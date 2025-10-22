@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -184,12 +184,23 @@ function IncidentDetailDialog({
     },
   });
 
+  // Reset form when incident changes
+  useEffect(() => {
+    updateForm.reset({
+      status: incident.status,
+      actionsTaken: incident.actionsTaken || '',
+      followUpRequired: incident.followUpRequired || false,
+      followUpNotes: incident.followUpNotes || '',
+    });
+    setIsEditing(false);
+  }, [incident.id]);
+
   const updateMutation = useMutation({
     mutationFn: async (data: UpdateIncidentValues) => {
       return await apiRequest('PATCH', `/api/incidents/${incident.id}`, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/incidents'] });
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({ queryKey: ['/api/incidents'] });
       toast({
         title: 'Incident Updated',
         description: 'The incident status has been successfully updated.',
