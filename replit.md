@@ -4,6 +4,19 @@
 
 AccommodateME is a multi-tenant SaaS platform designed for UK supported housing and social care providers. It enables organizations to manage Residents, Staff, Incidents, Compliance, Properties, and Documents within isolated workspaces. The platform's core purpose is to provide a unified system for various care organizations to independently manage their operations, from property and resident management to staff, incident tracking, and regulatory compliance. It targets UK housing associations, social services, and supported living providers requiring enterprise-grade tools with complete data isolation. The multi-tenancy model utilizes a shared database with row-level isolation via `organizationId` foreign keys, ensuring data segregation with automatic middleware filtering.
 
+## Test Login Credentials
+
+All test accounts are for the **Saif Care Services** organization:
+
+- **Platform Admin (Cross-Organization)**: `superadmin@accommodateme.com` / `superadmin123`
+  - Full platform access with cross-organization command center
+- **Organization Admin**: `admin@saifcare.com` / `admin123`
+  - Full access to Saif Care Services organization
+- **Operations Manager**: `ops@saifcare.com` / `ops123`
+  - Operations-level access to organization data
+- **Support Worker**: `support@saifcare.com` / `support123`
+  - Mobile-first task cockpit for assigned property caseload
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
