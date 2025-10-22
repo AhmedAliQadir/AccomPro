@@ -255,6 +255,45 @@ router.post('/', async (req: TenantRequest, res) => {
       if (!resident) {
         return res.status(404).json({ error: 'Resident not found in your organization' });
       }
+
+      // For SUPPORT workers: Verify they are assigned to the resident's property
+      if (req.user.role === 'SUPPORT') {
+        // Get the resident's current tenancy to find their property
+        const tenancy = await prisma.tenancy.findFirst({
+          where: {
+            tenantId: data.residentId,
+            endDate: null, // Active tenancy
+          },
+          include: {
+            room: {
+              select: {
+                propertyId: true,
+              },
+            },
+          },
+        });
+
+        if (!tenancy) {
+          return res.status(403).json({ 
+            error: 'Cannot report incident: Resident has no active tenancy' 
+          });
+        }
+
+        // Check if the support worker is assigned to this property
+        const assignment = await prisma.assignment.findFirst({
+          where: {
+            userId: req.user.userId,
+            propertyId: tenancy.room.propertyId,
+            endDate: null, // Active assignment
+          },
+        });
+
+        if (!assignment) {
+          return res.status(403).json({ 
+            error: 'You can only report incidents for residents in your assigned properties' 
+          });
+        }
+      }
     }
 
     const incident = await prisma.incident.create({
