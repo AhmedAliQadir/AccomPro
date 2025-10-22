@@ -16,7 +16,8 @@ Preferred communication style: Simple, everyday language.
 **UI Framework**: shadcn/ui, built on Radix UI primitives, styled with Tailwind CSS following Material Design 3 principles for data-dense enterprise interfaces.
 **Design Rationale**: Prioritizes robust patterns for tables, forms, and navigation, offering accessible and customizable components.
 **Theme System**: Dual light/dark mode with CSS custom properties and HSL-based color definitions.
-**Key UI Patterns**: Card-based layouts, dialog/modal patterns, role-aware navigation, and toast notifications.
+**Key UI Patterns**: Card-based layouts, dialog/modal patterns, role-aware navigation, toast notifications, and role-based dashboard routing.
+**Dashboard System**: Role-specific dashboards with reusable components (StatCard, QuickActionCard, ActivityFeed, AlertBanner) designed for mobile-first, touch-optimized experiences.
 
 ### Backend Architecture
 
@@ -24,13 +25,16 @@ Preferred communication style: Simple, everyday language.
 **Database ORM**: Drizzle ORM with Neon PostgreSQL, transitioning from Prisma.
 **Authentication**: JWT-based with HTTP-only cookies and rate limiting on login.
 **File Storage**: Encrypted document storage using AES-256-GCM.
-**API Design**: RESTful endpoints organized by domain.
+**API Design**: RESTful endpoints organized by domain with role-specific dashboard endpoints (`/api/admin/dashboard`, `/api/support/dashboard`).
 **Architectural Decisions**:
 - **Dual ORM Strategy**: Primarily Drizzle ORM, with Prisma client present, indicating a transition.
 - **Authentication Flow**: JWT in HTTP-only cookies for security, with rate limiting.
 - **Document Security**: Multi-layer encryption (AES-256-GCM), SHA-256 hashing, and time-limited download tokens.
 - **Audit Trail**: Middleware-based logging of user actions and system changes.
-- **Role-Based Access Control (RBAC)**: Four roles (ADMIN, OPS, SUPPORT, VIEWER) with middleware-enforced permissions.
+- **Role-Based Access Control (RBAC)**: Four roles (ADMIN, OPS, SUPPORT, VIEWER) with middleware-enforced permissions and role-specific dashboard views:
+  - **ADMIN (Platform Admin)**: Cross-organization command center with portfolio overview, system-wide KPIs, organization management, and critical alerts.
+  - **SUPPORT (Support Worker)**: Mobile-first task cockpit with assigned property caseload, resident alerts, quick actions, and incident tracking scoped to their assignments.
+  - **OPS/VIEWER**: Default dashboard with organization-level statistics.
 
 ### Data Architecture
 
