@@ -161,11 +161,13 @@ const formatStatus = (status: IncidentStatus) => {
 function IncidentDetailDialog({ 
   incident, 
   open, 
-  onOpenChange 
+  onOpenChange,
+  onUpdate 
 }: { 
   incident: Incident; 
   open: boolean; 
   onOpenChange: (open: boolean) => void;
+  onUpdate: (updatedIncident: Incident) => void;
 }) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -193,13 +195,15 @@ function IncidentDetailDialog({
       followUpNotes: incident.followUpNotes || '',
     });
     setIsEditing(false);
-  }, [incident.id]);
+  }, [incident.id, incident.status, incident.actionsTaken, incident.followUpRequired, incident.followUpNotes]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: UpdateIncidentValues) => {
       return await apiRequest('PATCH', `/api/incidents/${incident.id}`, data);
     },
-    onSuccess: async (response) => {
+    onSuccess: async (response: { incident: Incident }) => {
+      // Update the parent component's selected incident with fresh data
+      onUpdate(response.incident);
       await queryClient.invalidateQueries({ queryKey: ['/api/incidents'] });
       toast({
         title: 'Incident Updated',
@@ -959,6 +963,7 @@ export default function Incidents() {
             incident={selectedIncident} 
             open={detailDialogOpen}
             onOpenChange={setDetailDialogOpen}
+            onUpdate={setSelectedIncident}
           />
         </Dialog>
       )}

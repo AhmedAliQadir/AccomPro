@@ -361,11 +361,11 @@ router.patch('/:id', authorize('ADMIN', 'OPS', 'ORG_ADMIN', 'COMPLIANCE_OFFICER'
     const incident = await prisma.incident.update({
       where: { id },
       data: {
-        ...('status' in data && { status: data.status }),
-        ...('actionsTaken' in data && { actionsTaken: data.actionsTaken }),
-        ...('followUpRequired' in data && { followUpRequired: data.followUpRequired }),
-        ...('followUpNotes' in data && { followUpNotes: data.followUpNotes }),
-        ...('resolvedBy' in data && { resolvedBy: data.resolvedBy }),
+        ...('status' in data ? { status: data.status } : {}),
+        ...('actionsTaken' in data ? { actionsTaken: data.actionsTaken } : {}),
+        ...('followUpRequired' in data ? { followUpRequired: data.followUpRequired } : {}),
+        ...('followUpNotes' in data ? { followUpNotes: data.followUpNotes } : {}),
+        ...('resolvedBy' in data ? { resolvedBy: data.resolvedBy } : {}),
       },
       include: {
         resident: {
