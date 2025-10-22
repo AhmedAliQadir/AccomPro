@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Building2, LayoutDashboard, Users, Home, FileText, LogOut, User, AlertTriangle } from 'lucide-react';
+import { Building2, LayoutDashboard, Users, Home, FileText, LogOut, User, AlertTriangle, UserCog, ClipboardCheck } from 'lucide-react';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const [location, setLocation] = useLocation();
@@ -21,7 +21,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
     { name: 'Tenants', href: '/tenants', icon: Users },
     { name: 'Properties', href: '/properties', icon: Building2 },
     { name: 'Rooms', href: '/rooms', icon: Home },
+    { name: 'Staff', href: '/staff', icon: UserCog },
     { name: 'Incidents', href: '/incidents', icon: AlertTriangle },
+    { name: 'Compliance', href: '/compliance', icon: ClipboardCheck },
     { name: 'Reports', href: '/reports', icon: FileText },
   ];
 

@@ -590,10 +590,10 @@ model Compliance {
   auditDate          DateTime
   auditorName        String?
   auditorOrganization String?
-  findings           Json?            // Array of findings/observations
+  findings           String?          // Simplified to text for MVP
   score              Int?             // Overall score if applicable
-  actionPlan         Json?            // Array of {action, responsible, dueDate, status}
-  evidenceDocuments  String[]         // Array of document IDs or file paths
+  actionPlan         String?          // Simplified to text for MVP
+  evidence           Json?            // Array of {description, uploadedAt, uploadedBy}
   dueDate            DateTime?
   completedAt        DateTime?
   completedBy        String?

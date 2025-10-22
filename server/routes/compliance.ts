@@ -27,35 +27,17 @@ const createComplianceSchema = z.object({
   auditDate: z.string(),
   auditorName: z.string().optional(),
   auditorOrganization: z.string().optional(),
-  findings: z.array(z.object({
-    area: z.string(),
-    observation: z.string(),
-    severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
-  })).optional(),
+  findings: z.string().optional(),
   score: z.number().optional(),
-  actionPlan: z.array(z.object({
-    action: z.string(),
-    responsible: z.string(),
-    dueDate: z.string(),
-    status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED']),
-  })).optional(),
+  actionPlan: z.string().optional(),
   dueDate: z.string().optional(),
   notes: z.string().optional(),
 });
 
 const updateComplianceSchema = z.object({
   status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'OVERDUE']).optional(),
-  findings: z.array(z.object({
-    area: z.string(),
-    observation: z.string(),
-    severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
-  })).optional(),
-  actionPlan: z.array(z.object({
-    action: z.string(),
-    responsible: z.string(),
-    dueDate: z.string(),
-    status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED']),
-  })).optional(),
+  findings: z.string().optional(),
+  actionPlan: z.string().optional(),
   score: z.number().optional(),
   notes: z.string().optional(),
 });
@@ -232,9 +214,9 @@ router.post('/', authorize('ADMIN', 'OPS', 'ORG_ADMIN', 'COMPLIANCE_OFFICER'), a
         auditDate: new Date(data.auditDate),
         auditorName: data.auditorName,
         auditorOrganization: data.auditorOrganization,
-        findings: data.findings || [],
+        findings: data.findings ?? null,
         score: data.score,
-        actionPlan: data.actionPlan || [],
+        actionPlan: data.actionPlan ?? null,
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
         notes: data.notes,
       },
@@ -281,8 +263,8 @@ router.patch('/:id', authorize('ADMIN', 'OPS', 'ORG_ADMIN', 'COMPLIANCE_OFFICER'
       }
     }
 
-    if (data.findings) updateData.findings = data.findings;
-    if (data.actionPlan) updateData.actionPlan = data.actionPlan;
+    if (data.findings !== undefined) updateData.findings = data.findings ?? null;
+    if (data.actionPlan !== undefined) updateData.actionPlan = data.actionPlan ?? null;
     if (data.score !== undefined) updateData.score = data.score;
     if (data.notes) updateData.notes = data.notes;
 
@@ -300,15 +282,15 @@ router.patch('/:id', authorize('ADMIN', 'OPS', 'ORG_ADMIN', 'COMPLIANCE_OFFICER'
 
 /**
  * POST /api/compliance/:id/evidence
- * Add evidence document to a compliance audit
+ * Add evidence note to a compliance audit
  */
 router.post('/:id/evidence', authorize('ADMIN', 'OPS', 'ORG_ADMIN', 'COMPLIANCE_OFFICER'), async (req: TenantRequest, res) => {
   try {
     const { id } = req.params;
-    const { documentId } = req.body;
+    const { description } = req.body;
 
-    if (!documentId) {
-      return res.status(400).json({ error: 'Document ID required' });
+    if (!description) {
+      return res.status(400).json({ error: 'Evidence description required' });
     }
 
     // Verify compliance audit belongs to organization
@@ -320,20 +302,23 @@ router.post('/:id/evidence', authorize('ADMIN', 'OPS', 'ORG_ADMIN', 'COMPLIANCE_
       return res.status(404).json({ error: 'Compliance audit not found' });
     }
 
-    const evidenceDocuments = compliance.evidenceDocuments || [];
-    if (!evidenceDocuments.includes(documentId)) {
-      evidenceDocuments.push(documentId);
-    }
+    // Add evidence entry to JSON array
+    const evidence = compliance.evidence || [];
+    evidence.push({
+      description,
+      uploadedAt: new Date().toISOString(),
+      uploadedBy: req.user?.userId,
+    });
 
     const updated = await prisma.compliance.update({
       where: { id },
-      data: { evidenceDocuments },
+      data: { evidence },
     });
 
     res.json({ compliance: updated });
   } catch (error) {
     console.error('Add evidence error:', error);
-    res.status(500).json({ error: 'Failed to add evidence document' });
+    res.status(500).json({ error: 'Failed to add evidence' });
   }
 });
 
