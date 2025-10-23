@@ -197,11 +197,11 @@ function IncidentDetailDialog({
     setIsEditing(false);
   }, [incident.id, incident.status, incident.actionsTaken, incident.followUpRequired, incident.followUpNotes]);
 
-  const updateMutation = useMutation({
+  const updateMutation = useMutation<{ incident: Incident }, Error, UpdateIncidentValues>({
     mutationFn: async (data: UpdateIncidentValues) => {
       return await apiRequest('PATCH', `/api/incidents/${incident.id}`, data);
     },
-    onSuccess: async (response: { incident: Incident }) => {
+    onSuccess: async (response) => {
       // Update the parent component's selected incident with fresh data
       onUpdate(response.incident);
       await queryClient.invalidateQueries({ queryKey: ['/api/incidents'] });
