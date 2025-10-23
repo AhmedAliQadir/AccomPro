@@ -187,6 +187,9 @@ router.post('/', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(createTenantSche
     // Helper function to convert empty strings to undefined
     const sanitize = (value: any) => (value === '' ? undefined : value);
     
+    // Get organizationId from authenticated user
+    const organizationId = req.user!.organizationId;
+    
     // Prepare core tenant data
     const tenantData: any = {
       firstName: coreFields.firstName,
@@ -195,6 +198,7 @@ router.post('/', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(createTenantSche
       phone: sanitize(coreFields.phone),
       dateOfBirth: coreFields.dateOfBirth,
       nationalInsuranceNumber: sanitize(nationalId),
+      organizationId,
     };
     
     if (tenantData.dateOfBirth && typeof tenantData.dateOfBirth === 'string') {
