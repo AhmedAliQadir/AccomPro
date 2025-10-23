@@ -29,9 +29,15 @@ async function checkTenantReadyForTenancy(tenantId: string): Promise<boolean> {
 router.get('/', async (req: AuthRequest, res) => {
   try {
     const { status, search } = req.query;
-    const { role, userId } = req.user!;
+    const { role, userId, organizationId } = req.user!;
 
-    const where: any = {};
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+
+    const where: any = {
+      organizationId, // Always filter by organization
+    };
 
     if (status) {
       where.status = status;
@@ -98,10 +104,17 @@ router.get('/', async (req: AuthRequest, res) => {
 router.get('/:id', async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
-    const { role, userId } = req.user!;
+    const { role, userId, organizationId } = req.user!;
 
-    const tenant = await prisma.tenant.findUnique({
-      where: { id },
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+
+    const tenant = await prisma.tenant.findFirst({
+      where: { 
+        id,
+        organizationId, // Ensure tenant belongs to user's organization
+      },
       include: {
         tenancies: {
           include: {
@@ -189,6 +202,10 @@ router.post('/', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(createTenantSche
     
     // Get organizationId from authenticated user
     const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
     
     // Prepare core tenant data
     const tenantData: any = {
