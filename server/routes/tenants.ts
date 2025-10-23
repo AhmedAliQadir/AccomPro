@@ -307,6 +307,21 @@ router.patch('/:id', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(updateTenant
   try {
     const { id } = req.params;
     const { nationalId, ...rest } = req.body;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    // Verify tenant belongs to user's organization
+    const existing = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!existing) {
+      return res.status(404).json({ error: 'Tenant not found in your organization' });
+    }
+    
     const data: any = { ...rest };
     
     if (data.dateOfBirth && typeof data.dateOfBirth === 'string') {
@@ -340,24 +355,42 @@ router.post('/:tenantId/tenancies', authorize('ADMIN', 'OPS', 'SUPPORT'), valida
   try {
     const { tenantId } = req.params;
     const { roomId, startDate } = req.body;
-    const { role, userId } = req.user!;
+    const { role, userId, organizationId } = req.user!;
 
-    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
-    if (!tenant) {
-      return res.status(404).json({ error: 'Tenant not found' });
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
     }
 
-    const room = await prisma.room.findUnique({
-      where: { id: roomId },
+    // Verify tenant belongs to user's organization
+    const tenant = await prisma.tenant.findFirst({ 
+      where: { 
+        id: tenantId,
+        organizationId,
+      } 
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found in your organization' });
+    }
+
+    // Verify room belongs to user's organization
+    const room = await prisma.room.findFirst({
+      where: { 
+        id: roomId,
+        property: {
+          organizationId,
+        },
+      },
       include: {
         tenancies: {
           where: { isActive: true },
         },
+        property: true,
       },
     });
 
     if (!room) {
-      return res.status(404).json({ error: 'Room not found' });
+      return res.status(404).json({ error: 'Room not found in your organization' });
     }
 
     if (role === 'SUPPORT') {
@@ -425,6 +458,20 @@ router.post('/:tenantId/tenancies', authorize('ADMIN', 'OPS', 'SUPPORT'), valida
 router.post('/:tenantId/check-ready', async (req: AuditableRequest, res) => {
   try {
     const { tenantId } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    // Verify tenant belongs to user's organization
+    const tenant = await prisma.tenant.findFirst({
+      where: { id: tenantId, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found in your organization' });
+    }
 
     const isReady = await checkTenantReadyForTenancy(tenantId);
 
@@ -453,10 +500,19 @@ router.patch('/:id/end', authorize('ADMIN', 'OPS'), async (req: AuthRequest & Au
   try {
     const { id } = req.params;
     const { endDate, endReason, endNotes } = req.body;
-    const { userId } = req.user!;
+    const { userId, organizationId } = req.user!;
 
-    const tenancy = await prisma.tenancy.findUnique({
-      where: { id },
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+
+    const tenancy = await prisma.tenancy.findFirst({
+      where: { 
+        id,
+        tenant: {
+          organizationId,
+        },
+      },
       include: {
         tenant: true,
         room: {
