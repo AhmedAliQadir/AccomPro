@@ -17,6 +17,37 @@ All test accounts are for the **Saif Care Services** organization:
 - **Support Worker**: `support@saifcare.com` / `support123`
   - Mobile-first task cockpit for assigned property caseload
 
+## Recent Changes (October 26, 2025)
+
+### Weekly Support Session Notes Feature ✅
+Implemented comprehensive weekly support notes system for documenting resident support sessions:
+
+**Database Schema** (Prisma):
+- Added `SupportNote` model with 5 support criteria categories (Economic Wellbeing, Enjoy & Achieve, Be Healthy, Stay Safe, Positive Contribution)
+- Added `ContactType` enum (IN_PERSON, PHONE_CALL)
+- Added `AttendanceStatus` enum (PRESENT, AUTHORISED_NON_ATTENDANCE, DID_NOT_ATTEND)
+- Multi-tenant isolation via `organizationId` foreign key
+- Relations to Organization, Tenant, and User (support worker)
+
+**Backend API** (server/routes/support-notes.ts):
+- Full CRUD operations: GET (list/detail), POST (create), PATCH (update), DELETE (delete)
+- **Security Features**:
+  - Zod validation on all mutations (POST/PATCH)
+  - Property-scoped access for SUPPORT role (can only access notes for assigned properties)
+  - Requires active tenancy for SUPPORT role operations
+  - Blocks `tenantId` mutation in updates (prevents privilege escalation)
+  - Organization-level filtering on all routes
+- Architect-approved with no security bypasses
+
+**Frontend** (client/src/pages/support-notes.tsx):
+- Comprehensive table view with search functionality
+- Multi-section form with all 5 support criteria categories
+- View dialog for full note details
+- Role-based access control (ADMIN, OPS, SUPPORT can create/edit; ADMIN/OPS can delete)
+- Mobile-friendly responsive design
+
+**Navigation**: Added "Support Notes" with ClipboardList icon to sidebar
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -51,7 +82,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Architecture
 
-**Core Entities**: User, Property, Room, Tenant (referred to as Resident), Tenancy, Document, Assignment, AuditLog, Organization, Staff, Incident, Compliance.
+**Core Entities**: User, Property, Room, Tenant (referred to as Resident), Tenancy, Document, Assignment, AuditLog, Organization, Staff, Incident, Compliance, SupportNote.
 **Key Relationships**: Hierarchical relationships between properties, rooms, and tenancies; tenant-document associations; staff assignments to properties.
 **Schema Strategy**: `shared/schema.ts` defines core entities, with the full schema evolving to support multi-tenancy and new features like Staff, Incident, and Compliance management, including `organizationId` foreign keys on all relevant models.
 **Validation and Data Integrity**: Zod schemas for API input validation, file upload constraints (10MB max, PDF/JPG/PNG), and a document verification workflow (PENDING -> VERIFIED/REJECTED).
