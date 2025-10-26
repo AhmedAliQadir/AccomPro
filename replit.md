@@ -56,6 +56,30 @@ Implemented comprehensive weekly support notes system for documenting resident s
 
 **Navigation**: Added "Support Notes" with ClipboardList icon to sidebar
 
+### Room Allocation Validation ✅
+Enhanced room allocation system to prevent double-booking of occupied rooms:
+
+**Backend Validation** (server/routes/tenants.ts):
+- Comprehensive overlapping tenancy detection in POST /api/tenants/:tenantId/tenancies
+- Validates against active tenancies at the moment of allocation (prevents race conditions)
+- Checks two overlap scenarios:
+  1. Existing tenancies that start before/on proposed start AND have no end date or end on/after proposed start
+  2. Existing tenancies that start during the proposed tenancy period
+- Clear error messages with current occupant names: "Room {number} is already occupied during this period. Current occupant(s): {names}"
+- Respects room capacity for multi-occupancy scenarios
+
+**Frontend Enhancement** (client/src/pages/tenant-onboarding.tsx):
+- Room selection dropdown shows real-time availability: "Room {number} - {available}/{capacity} available"
+- Displays warning when all rooms in a property are occupied
+- Only shows rooms with available capacity to streamline user experience
+- Backend API returns active tenancy counts (GET /api/properties includes `_count.tenancies` filtered to `isActive: true`)
+
+**Business Logic**:
+- Prevents John Wick's room from being allocated to John Smith while occupied
+- Room becomes available only when current tenancy is ended (isActive = false)
+- Supports future-dated tenancies that don't overlap with current occupants
+- Multi-occupancy rooms (capacity > 1) can have multiple simultaneous tenants up to capacity
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
