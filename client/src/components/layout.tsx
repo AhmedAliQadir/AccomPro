@@ -17,7 +17,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Building2, LayoutDashboard, Users, Home, FileText, LogOut, User, AlertTriangle, UserCog, ClipboardCheck, Menu } from 'lucide-react';
+import { Building2, LayoutDashboard, Users, Home, FileText, LogOut, User, AlertTriangle, UserCog, ClipboardCheck, ClipboardList, Menu } from 'lucide-react';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const [location, setLocation] = useLocation();
@@ -30,6 +30,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     { name: 'Properties', href: '/properties', icon: Building2 },
     { name: 'Rooms', href: '/rooms', icon: Home },
     { name: 'Staff', href: '/staff', icon: UserCog },
+    { name: 'Support Notes', href: '/support-notes', icon: ClipboardList },
     { name: 'Incidents', href: '/incidents', icon: AlertTriangle },
     { name: 'Compliance', href: '/compliance', icon: ClipboardCheck },
     { name: 'Reports', href: '/reports', icon: FileText },
