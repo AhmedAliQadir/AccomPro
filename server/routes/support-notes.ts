@@ -1,10 +1,13 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../prisma';
-import { authorize, AuthRequest } from '../middleware/auth';
+import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import { AuditableRequest } from '../middleware/audit';
 
 const router = Router();
+
+// Apply authentication to all routes
+router.use(authenticate);
 
 // Validation schemas
 const createSupportNoteSchema = z.object({
