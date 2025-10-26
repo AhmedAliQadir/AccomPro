@@ -108,6 +108,17 @@ enum DocumentStatus {
   REJECTED
 }
 
+enum ContactType {
+  IN_PERSON
+  PHONE_CALL
+}
+
+enum AttendanceStatus {
+  PRESENT
+  AUTHORISED_NON_ATTENDANCE
+  DID_NOT_ATTEND
+}
+
 model Organization {
   id               String           @id @default(uuid())
   name             String
@@ -131,6 +142,7 @@ model Organization {
   staff        Staff[]
   incidents    Incident[]
   compliance   Compliance[]
+  supportNotes SupportNote[]
 
   @@map("organizations")
 }
@@ -156,6 +168,7 @@ model User {
   documentsVerified   Document[]   @relation("DocumentVerifier")
   tenanciesEnded      Tenancy[]    @relation("TenancyEndedBy")
   incidentsReported   Incident[]   @relation("IncidentReporter")
+  supportNotes        SupportNote[] @relation("SupportWorker")
 
   @@index([organizationId])
   @@map("users")
@@ -237,6 +250,7 @@ model Tenant {
   supportPlan       TenantSupportPlan?
   consents          TenantConsent?
   incidents         Incident[]
+  supportNotes      SupportNote[]
 
   @@index([organizationId])
   @@map("tenants")
@@ -608,4 +622,46 @@ model Compliance {
   @@index([status])
   @@index([auditDate])
   @@map("compliance")
+}
+
+model SupportNote {
+  id                             String           @id @default(uuid())
+  organizationId                 String
+  tenantId                       String
+  supportWorkerId                String
+  sessionDate                    DateTime
+  contactType                    ContactType
+  attendanceStatus               AttendanceStatus
+  
+  // Support Criteria Sections
+  economicWellbeingNotes         String?          @db.Text // Banking, Budgeting, Debt, Benefits
+  enjoyAchieveNotes              String?          @db.Text // Employment, Education, Social networks, Volunteering
+  healthNotes                    String?          @db.Text // Healthcare, Physical health, Substance misuse
+  staySafeNotes                  String?          @db.Text // Living conditions, Life skills, Risk reduction
+  positiveContributionNotes      String?          @db.Text // Anti-social behaviour, Probation, Relationships
+  
+  // Additional sections
+  specificSupportNeeds           String?          @db.Text
+  sessionComments                String?          @db.Text
+  
+  // Signatures
+  clientSignature                String?          // Digital signature or name
+  supportWorkerSignature         String?          // Digital signature or name
+  
+  // Next session
+  nextSessionDate                DateTime?
+  
+  createdAt                      DateTime         @default(now())
+  updatedAt                      DateTime         @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant          Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  supportWorker   User         @relation("SupportWorker", fields: [supportWorkerId], references: [id])
+
+  @@index([organizationId])
+  @@index([tenantId])
+  @@index([supportWorkerId])
+  @@index([sessionDate])
+  @@map("support_notes")
 }

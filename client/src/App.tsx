@@ -18,6 +18,7 @@ import ReportsPage from "@/pages/reports";
 import IncidentsPage from "@/pages/incidents";
 import StaffPage from "@/pages/staff";
 import CompliancePage from "@/pages/compliance";
+import SupportNotesPage from "@/pages/support-notes";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoutes() {
@@ -36,6 +37,7 @@ function ProtectedRoutes() {
           <Route path="/staff" component={StaffPage} />
           <Route path="/incidents" component={IncidentsPage} />
           <Route path="/compliance" component={CompliancePage} />
+          <Route path="/support-notes" component={SupportNotesPage} />
           <Route path="/reports" component={ReportsPage} />
           <Route component={NotFound} />
         </Switch>

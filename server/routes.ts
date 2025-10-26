@@ -9,6 +9,7 @@ import roomRoutes from "./routes/rooms";
 import staffRoutes from "./routes/staff";
 import incidentsRoutes from "./routes/incidents";
 import complianceRoutes from "./routes/compliance";
+import supportNotesRoutes from "./routes/support-notes";
 import organizationsRoutes from "./routes/organizations";
 import adminRoutes from "./routes/admin";
 import supportDashboardRoutes from "./routes/support-dashboard";
@@ -33,6 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/staff", staffRoutes);
   app.use("/api/incidents", incidentsRoutes);
   app.use("/api/compliance", complianceRoutes);
+  app.use("/api/support-notes", supportNotesRoutes);
   app.use("/api/support", supportDashboardRoutes);
 
   // API health check

@@ -7,6 +7,10 @@ import {
   ClipboardCheck,
   DollarSign,
   BarChart3,
+  ClipboardList,
+  AlertTriangle,
+  ShieldCheck,
+  UserCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -25,10 +29,10 @@ const menuItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Tenants", url: "/tenants", icon: Users },
   { title: "Properties", url: "/properties", icon: Building2 },
-  { title: "Cases", url: "/cases", icon: FileText },
-  { title: "Maintenance", url: "/maintenance", icon: Wrench },
-  { title: "Visits", url: "/visits", icon: ClipboardCheck },
-  { title: "Finances", url: "/finances", icon: DollarSign },
+  { title: "Staff", url: "/staff", icon: UserCheck },
+  { title: "Support Notes", url: "/support-notes", icon: ClipboardList },
+  { title: "Incidents", url: "/incidents", icon: AlertTriangle },
+  { title: "Compliance", url: "/compliance", icon: ShieldCheck },
   { title: "Reports", url: "/reports", icon: BarChart3 },
 ];
 
