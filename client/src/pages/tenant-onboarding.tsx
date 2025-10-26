@@ -538,13 +538,29 @@ export default function TenantOnboardingPage() {
                 <SelectValue placeholder="Select room" />
               </SelectTrigger>
               <SelectContent>
-                {availableRooms.map((room) => (
-                  <SelectItem key={room.id} value={room.id}>
-                    {room.roomNumber}
-                  </SelectItem>
-                ))}
+                {availableRooms.length === 0 && roomAssignment.propertyId ? (
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                    No available rooms
+                  </div>
+                ) : (
+                  availableRooms.map((room) => {
+                    const occupancy = room._count?.tenancies ?? 0;
+                    const capacity = room.capacity;
+                    const available = capacity - occupancy;
+                    return (
+                      <SelectItem key={room.id} value={room.id}>
+                        Room {room.roomNumber} - {available}/{capacity} available
+                      </SelectItem>
+                    );
+                  })
+                )}
               </SelectContent>
             </Select>
+            {roomAssignment.propertyId && availableRooms.length === 0 && (
+              <p className="text-sm text-destructive">
+                All rooms in this property are currently occupied
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
