@@ -206,6 +206,46 @@ export default function SupportNotesPage() {
     setViewDialogOpen(true);
   };
 
+  const handleDownload = async (noteId: string) => {
+    try {
+      const response = await fetch(`/api/support-notes/${noteId}/download`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download support note');
+      }
+
+      // Get filename from Content-Disposition header or use default
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : `support-note-${noteId}.pdf`;
+
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: 'Download Complete',
+        description: 'Support note has been downloaded successfully.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Download Failed',
+        description: error.message || 'Failed to download support note. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -385,6 +425,14 @@ export default function SupportNotesPage() {
                             data-testid={`button-view-${note.id}`}
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownload(note.id)}
+                            data-testid={`button-download-${note.id}`}
+                          >
+                            <Download className="h-4 w-4" />
                           </Button>
                           {canEdit && (
                             <Button
@@ -805,6 +853,14 @@ export default function SupportNotesPage() {
               </div>
 
               <div className="flex justify-end gap-2 border-t pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => handleDownload(selectedNote.id)}
+                  data-testid="button-download-view"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
                 {canEdit && (
                   <Button
                     onClick={() => {

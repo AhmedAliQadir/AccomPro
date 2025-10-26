@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../prisma';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import { AuditableRequest } from '../middleware/audit';
+import { generateSupportNotePDF } from '../lib/pdf-generator';
 
 const router = Router();
 
@@ -170,6 +171,101 @@ router.get('/:id', authorize('ADMIN', 'OPS', 'SUPPORT'), async (req: AuthRequest
   } catch (error) {
     console.error('Get support note error:', error);
     res.status(500).json({ error: 'Failed to fetch support note' });
+  }
+});
+
+// GET /api/support-notes/:id/download - Download a support note as PDF
+router.get('/:id/download', authorize('ADMIN', 'OPS', 'SUPPORT'), async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { role, userId, organizationId } = req.user!;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+
+    const supportNote = await prisma.supportNote.findFirst({
+      where: {
+        id,
+        organizationId,
+      },
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        supportWorker: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        organization: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!supportNote) {
+      return res.status(404).json({ error: 'Support note not found in your organization' });
+    }
+
+    // Support workers can only access notes for their assigned properties
+    if (role === 'SUPPORT') {
+      const tenancy = await prisma.tenancy.findFirst({
+        where: {
+          tenantId: supportNote.tenantId,
+          isActive: true,
+        },
+        include: {
+          room: true,
+        },
+      });
+
+      if (!tenancy) {
+        return res.status(403).json({ 
+          error: 'Access denied: Resident must have an active tenancy in an assigned property' 
+        });
+      }
+
+      const hasAccess = await prisma.assignment.findFirst({
+        where: {
+          userId,
+          propertyId: tenancy.room.propertyId,
+          endDate: null,
+        },
+      });
+
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied to this support note' });
+      }
+    }
+
+    // Generate PDF
+    const pdfStream = generateSupportNotePDF(supportNote as any);
+    
+    // Sanitize filename to prevent header injection
+    // Remove any characters that could be used for header injection or cause issues
+    const sanitize = (str: string) => str.replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 50);
+    const firstName = sanitize(supportNote.tenant.firstName);
+    const lastName = sanitize(supportNote.tenant.lastName);
+    const sessionDate = new Date(supportNote.sessionDate).toISOString().split('T')[0];
+    const fileName = `support-note-${firstName}-${lastName}-${sessionDate}.pdf`;
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    
+    // Pipe PDF stream to response
+    pdfStream.pipe(res);
+  } catch (error) {
+    console.error('Download support note error:', error);
+    res.status(500).json({ error: 'Failed to download support note' });
   }
 });
 
