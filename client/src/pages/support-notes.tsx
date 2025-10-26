@@ -208,6 +208,26 @@ export default function SupportNotesPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.tenantId) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please select a resident for this support note.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (!formData.sessionDate) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please select a session date.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     if (selectedNote) {
       updateMutation.mutate({ id: selectedNote.id, ...formData });
     } else {
