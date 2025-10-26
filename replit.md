@@ -46,6 +46,14 @@ Implemented comprehensive weekly support notes system for documenting resident s
 - Role-based access control (ADMIN, OPS, SUPPORT can create/edit; ADMIN/OPS can delete)
 - Mobile-friendly responsive design
 
+**PDF Download Feature** (server/lib/pdf-generator.ts + server/routes/support-notes.ts):
+- Server-side PDF generation using PDFKit library
+- GET /api/support-notes/:id/download endpoint with same security controls as view
+- Comprehensive PDF includes: organization header, resident/session info, all 5 support criteria, signatures, metadata footer
+- **Security hardening**: Filename sanitization prevents header injection attacks (strips CR/LF, quotes, special chars)
+- Download buttons in table (icon-only) and view dialog with proper error handling
+- Generated filename format: `support-note-{firstName}-{lastName}-{sessionDate}.pdf`
+
 **Navigation**: Added "Support Notes" with ClipboardList icon to sidebar
 
 ## User Preferences
