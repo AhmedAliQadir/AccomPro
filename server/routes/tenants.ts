@@ -407,24 +407,54 @@ router.post('/:tenantId/tenancies', authorize('ADMIN', 'OPS', 'SUPPORT'), valida
       }
     }
 
-    if (room.tenancies.length >= room.capacity) {
-      return res.status(400).json({ error: 'Room is at full capacity' });
-    }
+    // Check for overlapping active tenancies
+    // A tenancy overlaps if:
+    // 1. It's active
+    // 2. It starts before or on the new tenancy's start date AND
+    // 3. It either has no end date (ongoing) OR ends on or after the new tenancy's start date
+    const proposedStartDate = new Date(startDate);
+    const proposedEndDate = req.body.endDate ? new Date(req.body.endDate) : null;
 
     const overlappingTenancies = await prisma.tenancy.findMany({
       where: {
         roomId,
         isActive: true,
-        startDate: { lte: new Date(startDate) },
         OR: [
-          { endDate: null },
-          { endDate: { gte: new Date(startDate) } },
+          // Existing tenancy that overlaps with the start of the new tenancy
+          {
+            startDate: { lte: proposedStartDate },
+            OR: [
+              { endDate: null }, // Ongoing tenancy
+              { endDate: { gte: proposedStartDate } }, // Ends on or after new start
+            ],
+          },
+          // Existing tenancy that starts during the new tenancy period
+          proposedEndDate
+            ? {
+                startDate: { gte: proposedStartDate, lte: proposedEndDate },
+              }
+            : {
+                startDate: { gte: proposedStartDate },
+              },
         ],
+      },
+      include: {
+        tenant: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
 
     if (overlappingTenancies.length >= room.capacity) {
-      return res.status(400).json({ error: 'Overlapping tenancies exceed room capacity' });
+      const occupantNames = overlappingTenancies
+        .map((t) => `${t.tenant.firstName} ${t.tenant.lastName}`)
+        .join(', ');
+      return res.status(400).json({
+        error: `Room ${room.roomNumber} is already occupied during this period. Current occupant(s): ${occupantNames}`,
+      });
     }
 
     const data = { ...req.body };
