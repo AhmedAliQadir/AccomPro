@@ -87,13 +87,8 @@ export default function OrganizationSettingsPage() {
 
   const updateMutation = useMutation({
     mutationFn: async (formData: OrganizationFormData) => {
-      return apiRequest('/api/organization/settings', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await apiRequest('PATCH', '/api/organization/settings', formData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organization/settings'] });
