@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
-import { authenticate, authorize } from '../middleware/auth';
+import { authenticate, authorizePlatformAdmin } from '../middleware/auth';
 
 const router = Router();
 
@@ -8,9 +8,10 @@ router.use(authenticate);
 
 /**
  * GET /api/organizations
- * Get all organizations (Platform Admin only)
+ * Get all organizations (Platform Admin only - Orbixio LTD staff)
+ * Security: Only users with @accommodateme.com emails can access cross-organization data
  */
-router.get('/', authorize('ADMIN'), async (req, res) => {
+router.get('/', authorizePlatformAdmin, async (req, res) => {
   try {
     const organizations = await prisma.organization.findMany({
       select: {
@@ -44,9 +45,10 @@ router.get('/', authorize('ADMIN'), async (req, res) => {
 
 /**
  * GET /api/organizations/:id
- * Get a single organization by ID (Platform Admin only)
+ * Get a single organization by ID (Platform Admin only - Orbixio LTD staff)
+ * Security: Only users with @accommodateme.com emails can access cross-organization data
  */
-router.get('/:id', authorize('ADMIN'), async (req, res) => {
+router.get('/:id', authorizePlatformAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 

@@ -18,6 +18,7 @@ export interface TokenPayload {
   email: string;
   role: string;
   organizationId: string;
+  isPlatformAdmin: boolean; // Orbixio LTD staff flag for cross-org access
 }
 
 export interface DownloadTokenPayload {

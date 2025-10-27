@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Building2, Home, FileCheck, UserCheck, Clock } from 'lucide-react';
-import { useAuth } from '@/lib/auth';
+import { useAuth, isPlatformAdmin } from '@/lib/auth';
 import AdminDashboard from './admin-dashboard';
 import SupportDashboard from './support-dashboard';
 
@@ -21,19 +21,24 @@ interface DashboardStats {
 export default function DashboardPage() {
   const { user } = useAuth();
 
+  // Fetch dashboard stats for default dashboard (always call hooks unconditionally)
+  const { data, isLoading } = useQuery<DashboardStats>({
+    queryKey: ['/api/reports/dashboard'],
+    enabled: !isPlatformAdmin(user) && user?.role !== 'SUPPORT', // Only fetch if needed
+  });
+
   // Route to role-specific dashboards
-  if (user?.role === 'ADMIN') {
+  // Platform Admin (Orbixio staff) - sees cross-organization command center
+  if (isPlatformAdmin(user)) {
     return <AdminDashboard />;
   }
   
+  // Support Workers - see mobile-first task cockpit
   if (user?.role === 'SUPPORT') {
     return <SupportDashboard />;
   }
-
-  // Default dashboard for OPS, VIEWER, and other roles
-  const { data, isLoading } = useQuery<DashboardStats>({
-    queryKey: ['/api/reports/dashboard'],
-  });
+  
+  // Organization Admins, OPS, VIEWER - see organization-scoped dashboard
 
   const stats = data?.summary;
 

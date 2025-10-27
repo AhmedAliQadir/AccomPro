@@ -152,15 +152,16 @@ model Organization {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  organizationId String
-  email          String   @unique
-  password       String
-  firstName      String
-  lastName       String
-  role           Role     @default(VIEWER)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(uuid())
+  organizationId  String
+  email           String   @unique
+  password        String
+  firstName       String
+  lastName        String
+  role            Role     @default(VIEWER)
+  isPlatformAdmin Boolean  @default(false) // Orbixio LTD staff with cross-org access
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
   organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

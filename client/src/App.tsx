@@ -21,6 +21,7 @@ import StaffPage from "@/pages/staff";
 import CompliancePage from "@/pages/compliance";
 import SupportNotesPage from "@/pages/support-notes";
 import OrganizationSettingsPage from "@/pages/organization-settings";
+import OrganizationsPage from "@/pages/organizations";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoutes() {
@@ -36,6 +37,7 @@ function ProtectedRoutes() {
           <Switch>
             <Route path="/" component={DashboardPage} />
             <Route path="/dashboard" component={DashboardPage} />
+            <Route path="/organizations" component={OrganizationsPage} />
             <Route path="/tenants/new" component={TenantOnboardingPage} />
             <Route path="/tenants/:id" component={TenantDetailPage} />
             <Route path="/tenants" component={TenantsPage} />

@@ -1,6 +1,6 @@
-import { Building2, LayoutDashboard, Users, Home, FileText, AlertTriangle, UserCog, ClipboardCheck, ClipboardList, Settings } from 'lucide-react';
+import { Building2, LayoutDashboard, Users, Home, FileText, AlertTriangle, UserCog, ClipboardCheck, ClipboardList, Settings, Building } from 'lucide-react';
 import { useLocation } from 'wouter';
-import { useAuth } from '@/lib/auth';
+import { useAuth, isPlatformAdmin } from '@/lib/auth';
 import {
   Sidebar,
   SidebarContent,
@@ -29,6 +29,10 @@ export function AppSidebar() {
     { name: 'Reports', href: '/reports', icon: FileText },
   ];
 
+  const platformAdminNavigation = [
+    { name: 'Organizations', href: '/organizations', icon: Building },
+  ];
+
   const adminNavigation = [
     { name: 'Organization Settings', href: '/organization-settings', icon: Settings, roles: ['ADMIN', 'OPS'] },
   ];
@@ -46,6 +50,35 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
+        {/* Platform Admin Section - Only for Orbixio staff */}
+        {isPlatformAdmin(user) && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Platform Management</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {platformAdminNavigation.map((item) => {
+                  const isActive = location === item.href || 
+                    (item.href !== '/' && location.startsWith(item.href));
+                  return (
+                    <SidebarMenuItem key={item.name}>
+                      <SidebarMenuButton 
+                        asChild
+                        isActive={isActive}
+                        data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
+                        <button onClick={() => setLocation(item.href)} className="w-full">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.name}</span>
+                        </button>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>

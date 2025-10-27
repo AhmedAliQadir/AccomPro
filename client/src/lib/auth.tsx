@@ -9,6 +9,12 @@ export interface User {
   firstName: string;
   lastName: string;
   role: UserRole;
+  organizationId: string;
+  isPlatformAdmin: boolean; // Orbixio LTD staff flag for cross-org access
+}
+
+export function isPlatformAdmin(user: User | null): boolean {
+  return user?.isPlatformAdmin ?? false;
 }
 
 interface AuthContextType {

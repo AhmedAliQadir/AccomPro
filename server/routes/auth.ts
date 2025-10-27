@@ -37,6 +37,7 @@ router.post('/login', loginLimiter, validate(loginSchema), async (req, res) => {
       email: user.email,
       role: user.role,
       organizationId: user.organizationId,
+      isPlatformAdmin: user.isPlatformAdmin,
     });
 
     res.cookie('auth_token', token, {
@@ -54,6 +55,7 @@ router.post('/login', loginLimiter, validate(loginSchema), async (req, res) => {
         lastName: user.lastName,
         role: user.role,
         organizationId: user.organizationId,
+        isPlatformAdmin: user.isPlatformAdmin,
       },
     });
   } catch (error) {
@@ -78,6 +80,7 @@ router.get('/me', authenticate, async (req: AuthRequest, res) => {
         lastName: true,
         role: true,
         organizationId: true,
+        isPlatformAdmin: true,
       },
     });
 
