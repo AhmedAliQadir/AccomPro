@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider, RequireAuth } from "@/lib/auth";
 import { AppLayout } from "@/components/layout";
@@ -22,26 +23,33 @@ import SupportNotesPage from "@/pages/support-notes";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoutes() {
+  const style = {
+    "--sidebar-width": "16rem",
+    "--sidebar-width-icon": "3rem",
+  };
+
   return (
     <RequireAuth>
-      <AppLayout>
-        <Switch>
-          <Route path="/" component={DashboardPage} />
-          <Route path="/dashboard" component={DashboardPage} />
-          <Route path="/tenants/new" component={TenantOnboardingPage} />
-          <Route path="/tenants/:id" component={TenantDetailPage} />
-          <Route path="/tenants" component={TenantsPage} />
-          <Route path="/properties/:id" component={PropertyDetailPage} />
-          <Route path="/properties" component={PropertiesPage} />
-          <Route path="/rooms" component={RoomsPage} />
-          <Route path="/staff" component={StaffPage} />
-          <Route path="/incidents" component={IncidentsPage} />
-          <Route path="/compliance" component={CompliancePage} />
-          <Route path="/support-notes" component={SupportNotesPage} />
-          <Route path="/reports" component={ReportsPage} />
-          <Route component={NotFound} />
-        </Switch>
-      </AppLayout>
+      <SidebarProvider style={style as React.CSSProperties}>
+        <AppLayout>
+          <Switch>
+            <Route path="/" component={DashboardPage} />
+            <Route path="/dashboard" component={DashboardPage} />
+            <Route path="/tenants/new" component={TenantOnboardingPage} />
+            <Route path="/tenants/:id" component={TenantDetailPage} />
+            <Route path="/tenants" component={TenantsPage} />
+            <Route path="/properties/:id" component={PropertyDetailPage} />
+            <Route path="/properties" component={PropertiesPage} />
+            <Route path="/rooms" component={RoomsPage} />
+            <Route path="/staff" component={StaffPage} />
+            <Route path="/incidents" component={IncidentsPage} />
+            <Route path="/compliance" component={CompliancePage} />
+            <Route path="/support-notes" component={SupportNotesPage} />
+            <Route path="/reports" component={ReportsPage} />
+            <Route component={NotFound} />
+          </Switch>
+        </AppLayout>
+      </SidebarProvider>
     </RequireAuth>
   );
 }
