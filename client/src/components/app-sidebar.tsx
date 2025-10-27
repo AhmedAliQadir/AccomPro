@@ -1,5 +1,6 @@
-import { Building2, LayoutDashboard, Users, Home, FileText, AlertTriangle, UserCog, ClipboardCheck, ClipboardList } from 'lucide-react';
+import { Building2, LayoutDashboard, Users, Home, FileText, AlertTriangle, UserCog, ClipboardCheck, ClipboardList, Settings } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useAuth } from '@/lib/auth';
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +15,7 @@ import {
 
 export function AppSidebar() {
   const [location, setLocation] = useLocation();
+  const { user } = useAuth();
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -25,6 +27,10 @@ export function AppSidebar() {
     { name: 'Incidents', href: '/incidents', icon: AlertTriangle },
     { name: 'Compliance', href: '/compliance', icon: ClipboardCheck },
     { name: 'Reports', href: '/reports', icon: FileText },
+  ];
+
+  const adminNavigation = [
+    { name: 'Organization Settings', href: '/organization-settings', icon: Settings, roles: ['ADMIN', 'OPS'] },
   ];
 
   return (
@@ -65,6 +71,33 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        
+        {user && (user.role === 'ADMIN' || user.role === 'OPS') && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Settings</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminNavigation.map((item) => {
+                  const isActive = location === item.href;
+                  return (
+                    <SidebarMenuItem key={item.name}>
+                      <SidebarMenuButton 
+                        asChild
+                        isActive={isActive}
+                        data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
+                        <button onClick={() => setLocation(item.href)} className="w-full">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.name}</span>
+                        </button>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );
