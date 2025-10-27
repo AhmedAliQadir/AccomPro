@@ -128,6 +128,10 @@ model Organization {
   address          String?
   postcode         String?
   subscriptionTier SubscriptionTier @default(BASIC)
+  billingContact   String?
+  billingEmail     String?
+  billingAddress   String?
+  paymentMethod    String?          // e.g., "Credit Card ending in 1234", "Bank Transfer"
   isActive         Boolean          @default(true)
   settings         Json?            // Branding, configuration, preferences
   createdAt        DateTime         @default(now())
