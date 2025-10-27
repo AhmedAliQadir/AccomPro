@@ -17,6 +17,45 @@ All test accounts are for the **Saif Care Services** organization:
 - **Support Worker**: `support@saifcare.com` / `support123`
   - Mobile-first task cockpit for assigned property caseload
 
+## Recent Changes (October 27, 2025)
+
+### Organization Settings Feature ✅
+Implemented comprehensive organization settings page for organization administrators to manage their organization's details and billing information:
+
+**Database Schema** (Prisma):
+- Extended `Organization` model with billing fields (billingContact, billingEmail, billingAddress, paymentMethod)
+- All billing fields are optional to accommodate organizations at different setup stages
+- Maintains existing fields: name, contactEmail, contactPhone, address, postcode, subscriptionTier
+
+**Backend API** (server/routes/organization-settings.ts):
+- GET /api/organization/settings - Retrieves organization details scoped to user's organizationId
+- PATCH /api/organization/settings - Updates organization details with Zod validation
+- **Security Features**:
+  - Automatic organizationId scoping from authenticated user (no cross-organization access)
+  - Zod validation ensures data integrity on updates
+  - Role-based access control via authentication middleware
+  - Only users within the organization can view/edit their organization's settings
+
+**Frontend** (client/src/pages/organization-settings.tsx):
+- Comprehensive settings page with two main sections:
+  1. Organization Details: name, contact email/phone, address, postcode, subscription tier (read-only)
+  2. Billing Information: billing contact, email, address, payment method
+- Edit mode toggle for controlled form editing experience
+- Form validation using react-hook-form with Zod schemas
+- Read-only display of organization ID for API integrations
+- Mobile-responsive card-based layout
+
+**Navigation** (client/src/components/app-sidebar.tsx):
+- Added "Organization Settings" link with Settings icon in dedicated Settings section
+- Conditionally rendered only for ADMIN and OPS roles
+- Uses useAuth hook to check user role for visibility control
+
+**User Experience**:
+- Organization Admins can view and edit their organization's details in one centralized location
+- Billing information separated from operational details for clarity
+- Clear visual hierarchy with icons and descriptions
+- Toast notifications for successful updates or errors
+
 ## Recent Changes (October 26, 2025)
 
 ### Weekly Support Session Notes Feature ✅

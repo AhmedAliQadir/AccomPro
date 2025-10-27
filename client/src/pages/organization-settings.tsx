@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient, apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/lib/auth';
 import { Building2, CreditCard, Save } from 'lucide-react';
 
 const organizationSchema = z.object({
@@ -42,7 +43,9 @@ type OrganizationFormData = z.infer<typeof organizationSchema>;
 
 export default function OrganizationSettingsPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const canEdit = user?.role === 'ADMIN';
 
   const { data, isLoading } = useQuery<{ organization: any }>({
     queryKey: ['/api/organization/settings'],
@@ -52,33 +55,45 @@ export default function OrganizationSettingsPage() {
 
   const form = useForm<OrganizationFormData>({
     resolver: zodResolver(organizationSchema),
-    values: organization ? {
-      name: organization.name || '',
-      contactEmail: organization.contactEmail || '',
-      contactPhone: organization.contactPhone || '',
-      address: organization.address || '',
-      postcode: organization.postcode || '',
-      billingContact: organization.billingContact || '',
-      billingEmail: organization.billingEmail || '',
-      billingAddress: organization.billingAddress || '',
-      paymentMethod: organization.paymentMethod || '',
-    } : undefined,
+    defaultValues: {
+      name: '',
+      contactEmail: '',
+      contactPhone: '',
+      address: '',
+      postcode: '',
+      billingContact: '',
+      billingEmail: '',
+      billingAddress: '',
+      paymentMethod: '',
+    },
   });
+
+  useEffect(() => {
+    if (organization) {
+      form.reset({
+        name: organization.name || '',
+        contactEmail: organization.contactEmail || '',
+        contactPhone: organization.contactPhone || '',
+        address: organization.address || '',
+        postcode: organization.postcode || '',
+        billingContact: organization.billingContact || '',
+        billingEmail: organization.billingEmail || '',
+        billingAddress: organization.billingAddress || '',
+        paymentMethod: organization.paymentMethod || '',
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organization]);
 
   const updateMutation = useMutation({
     mutationFn: async (formData: OrganizationFormData) => {
-      const response = await fetch('/api/organization/settings', {
+      return apiRequest('/api/organization/settings', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-        credentials: 'include',
       });
-      if (!response.ok) {
-        throw new Error('Failed to update organization settings');
-      }
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organization/settings'] });
@@ -102,7 +117,19 @@ export default function OrganizationSettingsPage() {
   };
 
   const handleCancel = () => {
-    form.reset();
+    if (organization) {
+      form.reset({
+        name: organization.name || '',
+        contactEmail: organization.contactEmail || '',
+        contactPhone: organization.contactPhone || '',
+        address: organization.address || '',
+        postcode: organization.postcode || '',
+        billingContact: organization.billingContact || '',
+        billingEmail: organization.billingEmail || '',
+        billingAddress: organization.billingAddress || '',
+        paymentMethod: organization.paymentMethod || '',
+      });
+    }
     setIsEditing(false);
   };
 
@@ -143,7 +170,7 @@ export default function OrganizationSettingsPage() {
               Manage your organization's details and billing information
             </p>
           </div>
-          {!isEditing && (
+          {!isEditing && canEdit && (
             <Button onClick={() => setIsEditing(true)} data-testid="button-edit-settings">
               Edit Settings
             </Button>
