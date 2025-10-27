@@ -11,6 +11,7 @@ import incidentsRoutes from "./routes/incidents";
 import complianceRoutes from "./routes/compliance";
 import supportNotesRoutes from "./routes/support-notes";
 import organizationsRoutes from "./routes/organizations";
+import organizationSettingsRoutes from "./routes/organization-settings";
 import adminRoutes from "./routes/admin";
 import supportDashboardRoutes from "./routes/support-dashboard";
 
@@ -20,6 +21,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Platform admin routes
   app.use("/api/organizations", organizationsRoutes);
+  app.use("/api/organization", organizationSettingsRoutes);
   app.use("/api/admin", adminRoutes);
   
   // Main application routes
