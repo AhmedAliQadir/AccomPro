@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -11,7 +12,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Building2, Users, Home, Search, CheckCircle2, XCircle } from 'lucide-react';
+import { Building2, Users, Home, Search, CheckCircle2, XCircle, Plus, ShieldAlert } from 'lucide-react';
+import { AddOrganizationWizard } from '@/components/add-organization-wizard';
+import { OrganizationDetailView } from '@/components/organization-detail-view';
+import { useAuth } from '@/lib/auth';
 
 interface Organization {
   id: string;
@@ -34,10 +38,17 @@ interface OrganizationsResponse {
 }
 
 export default function OrganizationsPage() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
+
+  const isPlatformAdmin = user?.isPlatformAdmin === true;
 
   const { data, isLoading } = useQuery<OrganizationsResponse>({
     queryKey: ['/api/organizations'],
+    enabled: isPlatformAdmin,
   });
 
   const organizations = data?.organizations || [];
@@ -63,6 +74,26 @@ export default function OrganizationsPage() {
     }
   };
 
+  // Access denied for non-Platform Admins
+  if (!isPlatformAdmin) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <ShieldAlert className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+            <p className="text-muted-foreground">
+              This page is restricted to Platform Administrators only.
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Only Orbixio LTD staff can manage organizations.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -77,14 +108,33 @@ export default function OrganizationsPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold" data-testid="heading-organizations">
-          Organizations
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Manage all customer organizations on the AccommodateME platform
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold" data-testid="heading-organizations">
+            Organizations
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Manage all customer organizations on the AccommodateME platform
+          </p>
+        </div>
+        <Button onClick={() => setIsWizardOpen(true)} data-testid="button-add-organization">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Organization
+        </Button>
       </div>
+
+      {/* Add Organization Wizard */}
+      <AddOrganizationWizard open={isWizardOpen} onOpenChange={setIsWizardOpen} />
+
+      {/* Organization Detail View */}
+      <OrganizationDetailView
+        organizationId={selectedOrgId}
+        open={isDetailViewOpen}
+        onOpenChange={(open) => {
+          setIsDetailViewOpen(open);
+          if (!open) setSelectedOrgId(null);
+        }}
+      />
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -168,7 +218,11 @@ export default function OrganizationsPage() {
                   filteredOrganizations.map((org) => (
                     <TableRow
                       key={org.id}
-                      className="hover-elevate"
+                      className="hover-elevate cursor-pointer"
+                      onClick={() => {
+                        setSelectedOrgId(org.id);
+                        setIsDetailViewOpen(true);
+                      }}
                       data-testid={`row-org-${org.id}`}
                     >
                       <TableCell className="font-medium">

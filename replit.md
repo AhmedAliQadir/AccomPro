@@ -18,6 +18,7 @@ Preferred communication style: Simple, everyday language.
 **Theme System**: Dual light/dark mode with CSS custom properties and HSL-based color definitions.
 **Key UI Patterns**: Card-based layouts, dialog/modal patterns, role-aware navigation, toast notifications, and role-based dashboard routing.
 **Dashboard System**: Role-specific dashboards with reusable components (StatCard, QuickActionCard, ActivityFeed, AlertBanner) designed for mobile-first, touch-optimized experiences.
+**Organization Management**: Multi-step wizard for organization onboarding with validation, detail view with inline editing, and comprehensive statistics display.
 
 ### Backend Architecture
 
@@ -26,14 +27,19 @@ Preferred communication style: Simple, everyday language.
 **Authentication**: JWT-based with HTTP-only cookies and rate limiting on login. Database-backed `isPlatformAdmin` flag with JWT enforcement prevents privilege escalation.
 **File Storage**: Encrypted document storage using AES-256-GCM.
 **API Design**: RESTful endpoints organized by domain with role-specific dashboard endpoints (`/api/admin/dashboard`, `/api/support/dashboard`).
+**Organization API Endpoints**:
+- `POST /api/organizations` - Create organization with initial admin user (Platform Admin only, transactional)
+- `GET /api/organizations/:id` - Fetch organization details with statistics (Platform Admin only)
+- `PUT /api/organizations/:id` - Update organization details (Platform Admin only)
 **Architectural Decisions**:
 - **Dual ORM Strategy**: Primarily Drizzle ORM, with Prisma client present, indicating a transition.
 - **Authentication Flow**: JWT in HTTP-only cookies for security, with rate limiting.
 - **Document Security**: Multi-layer encryption (AES-256-GCM), SHA-256 hashing, and time-limited download tokens.
-- **Audit Trail**: Middleware-based logging of user actions and system changes.
+- **Audit Trail**: Middleware-based logging of user actions and system changes, including organization creation and updates.
 - **Role-Based Access Control (RBAC)**: Four roles (ADMIN, OPS, SUPPORT, VIEWER) with middleware-enforced permissions and role-specific dashboard views. Examples include specific access for Platform Admin (cross-organization command center) and Support Worker (mobile-first task cockpit).
 - **Multi-tenancy**: Achieved through `organizationId` foreign keys on all relevant models, ensuring data isolation.
 - **Room Allocation Validation**: Enhanced system prevents double-booking of occupied rooms by validating against active tenancies and room capacity.
+- **Organization Onboarding**: Atomic transaction-based creation ensures both organization and initial admin user are created together or not at all, preventing orphaned records.
 
 ### Data Architecture
 
@@ -79,3 +85,57 @@ Preferred communication style: Simple, everyday language.
 ### Development Tools
 - **tsx**: TypeScript execution.
 - **ws**: WebSocket library.
+
+## Platform Admin Features
+
+### Organization Onboarding Workflow
+Platform Admins can onboard new customer organizations through a multi-step wizard:
+
+**Step 1: Organization Details**
+- Organization name and subdomain (unique identifier)
+- Contact information (email, phone, address, postcode)
+- Subscription tier selection (FREE, BASIC, PROFESSIONAL, ENTERPRISE)
+- Optional billing information (contact, email, address, payment method)
+
+**Step 2: Initial Administrator**
+- Administrator name and email (becomes organization admin login)
+- Secure password setup (minimum 8 characters, bcrypt hashed)
+- Automatic role assignment as Organization Admin (not Platform Admin)
+
+**Step 3: Review & Confirmation**
+- Summary review of all entered information
+- Validation before submission
+- Atomic database transaction ensures both organization and admin user are created together
+
+**Post-Creation:**
+- Organization appears immediately in Organizations list
+- Audit log entry created tracking who created the organization
+- Initial admin can log in immediately with provided credentials
+- Toast notification confirms successful creation with admin email
+
+### Organization Management
+Platform Admins have comprehensive organization management capabilities:
+
+**View Organizations List:**
+- Searchable/filterable table of all organizations
+- Quick stats: Total organizations, active organizations, total users
+- Per-organization data: Name, subdomain, contact info, subscription tier, status, user count, property count
+
+**View Organization Details:**
+- Click any organization row to open detail panel (Sheet component)
+- Real-time statistics: users, properties, residents, documents, staff, incidents, compliance records
+- Full organization information display
+- Edit mode toggle for making changes
+
+**Edit Organization:**
+- Inline editing within detail panel
+- Update organization details (name, subdomain, contact info)
+- Change subscription tier
+- Modify billing information
+- Subdomain uniqueness validation
+- Audit log entry created for all updates
+
+**Security:**
+- All organization management endpoints protected by `authorizePlatformAdmin` middleware
+- Only users with `isPlatformAdmin: true` database flag can access
+- Prevents unauthorized cross-organization access
