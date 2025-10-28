@@ -8,7 +8,6 @@ import {
   FileText,
   UserCog,
   TrendingUp,
-  Download,
 } from "lucide-react";
 import {
   StatCard,
@@ -261,15 +260,6 @@ export default function AdminDashboard() {
             icon={TrendingUp}
             onClick={() => navigate("/reports")}
             testId="action-reports"
-          />
-          <QuickActionCard
-            label="Download Presentation"
-            description="Client PDF report"
-            icon={Download}
-            onClick={() => {
-              window.open('/api/presentation/download', '_blank');
-            }}
-            testId="action-download-presentation"
           />
         </div>
       </div>

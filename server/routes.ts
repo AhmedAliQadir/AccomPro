@@ -14,7 +14,6 @@ import organizationsRoutes from "./routes/organizations";
 import organizationSettingsRoutes from "./routes/organization-settings";
 import adminRoutes from "./routes/admin";
 import supportDashboardRoutes from "./routes/support-dashboard";
-import presentationRoutes from "./routes/presentation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
@@ -24,7 +23,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/organizations", organizationsRoutes);
   app.use("/api/organization", organizationSettingsRoutes);
   app.use("/api/admin", adminRoutes);
-  app.use("/api/presentation", presentationRoutes);
   
   // Main application routes
   app.use("/api/properties", propertyRoutes);
