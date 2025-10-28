@@ -91,12 +91,10 @@ export default function TenantsPage() {
         </div>
         {canCreate && (
           <Link href="/tenants/new">
-            <a>
-              <Button data-testid="button-create-tenant">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Tenant
-              </Button>
-            </a>
+            <Button data-testid="button-create-tenant">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Tenant
+            </Button>
           </Link>
         )}
       </div>
@@ -132,40 +130,38 @@ export default function TenantsPage() {
             const activeTenancy = tenant.tenancies.find((t) => t.isActive);
             return (
               <Link key={tenant.id} href={`/tenants/${tenant.id}`}>
-                <a>
-                  <Card className="hover-elevate active-elevate-2" data-testid={`card-tenant-${tenant.id}`}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <CardTitle className="flex items-center gap-2">
-                            <User className="h-5 w-5 text-primary" />
-                            {tenant.firstName} {tenant.lastName}
-                          </CardTitle>
-                          <CardDescription className="flex flex-col gap-1 mt-2">
-                            {tenant.email && <span>{tenant.email}</span>}
-                            {tenant.phone && <span>{tenant.phone}</span>}
-                            {activeTenancy && (
-                              <span className="flex items-center gap-1">
-                                <span className="text-muted-foreground">Room:</span>
-                                <span className="font-medium">
-                                  {activeTenancy.room.property.name} - Room {activeTenancy.room.roomNumber}
-                                </span>
+                <Card className="hover-elevate active-elevate-2 cursor-pointer" data-testid={`card-tenant-${tenant.id}`}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <CardTitle className="flex items-center gap-2">
+                          <User className="h-5 w-5 text-primary" />
+                          {tenant.firstName} {tenant.lastName}
+                        </CardTitle>
+                        <CardDescription className="flex flex-col gap-1 mt-2">
+                          {tenant.email && <span>{tenant.email}</span>}
+                          {tenant.phone && <span>{tenant.phone}</span>}
+                          {activeTenancy && (
+                            <span className="flex items-center gap-1">
+                              <span className="text-muted-foreground">Room:</span>
+                              <span className="font-medium">
+                                {activeTenancy.room.property.name} - Room {activeTenancy.room.roomNumber}
                               </span>
-                            )}
-                          </CardDescription>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <Badge variant={statusColors[tenant.status] || 'outline'}>
-                            {tenant.status.replace(/_/g, ' ')}
-                          </Badge>
-                          <div className="text-sm text-muted-foreground">
-                            {tenant._count.documents} documents
-                          </div>
+                            </span>
+                          )}
+                        </CardDescription>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <Badge variant={statusColors[tenant.status] || 'outline'} className="no-default-hover-elevate no-default-active-elevate">
+                          {tenant.status.replace(/_/g, ' ')}
+                        </Badge>
+                        <div className="text-sm text-muted-foreground">
+                          {tenant._count.documents} documents
                         </div>
                       </div>
-                    </CardHeader>
-                  </Card>
-                </a>
+                    </div>
+                  </CardHeader>
+                </Card>
               </Link>
             );
           })}
