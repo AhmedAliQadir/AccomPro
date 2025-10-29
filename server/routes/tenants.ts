@@ -4,6 +4,17 @@ import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { createAuditLog, AuditableRequest } from '../middleware/audit';
 import { createTenantSchema, updateTenantSchema, createTenancySchema } from '../schemas/tenant';
+import { 
+  tenantProfileSchema,
+  riskAssessmentSchema,
+  supportPlanSchema,
+  financeSchema,
+  consentSchema,
+  missingPersonProfileSchema,
+  inventoryLogSchema,
+  serviceChargeRecordSchema,
+  emergencyContactSchema,
+} from '../schemas/onboarding';
 import { DocumentType } from '@prisma/client';
 
 const router = Router();
@@ -611,6 +622,486 @@ router.patch('/:id/end', authorize('ADMIN', 'OPS'), async (req: AuthRequest & Au
   } catch (error) {
     console.error('End tenancy error:', error);
     res.status(500).json({ error: 'Failed to end tenancy' });
+  }
+});
+
+// ============================================================
+// COMPREHENSIVE ONBOARDING ENDPOINTS
+// ============================================================
+
+// ===== TENANT PROFILE =====
+router.put('/:id/profile', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(tenantProfileSchema), async (req: AuditableRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    const profile = await prisma.tenantProfile.upsert({
+      where: { tenantId: id },
+      create: {
+        tenantId: id,
+        ...req.body,
+      },
+      update: req.body,
+    });
+    
+    req.auditLog = {
+      action: 'UPDATE_TENANT_PROFILE',
+      entityType: 'TenantProfile',
+      entityId: profile.id,
+      changes: req.body,
+    };
+    
+    res.json({ profile });
+  } catch (error) {
+    console.error('Update tenant profile error:', error);
+    res.status(500).json({ error: 'Failed to update tenant profile' });
+  }
+});
+
+// ===== RISK ASSESSMENT =====
+router.put('/:id/risk-assessment', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(riskAssessmentSchema), async (req: AuditableRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    const riskAssessment = await prisma.tenantRiskAssessment.upsert({
+      where: { tenantId: id },
+      create: {
+        tenantId: id,
+        ...req.body,
+      },
+      update: req.body,
+    });
+    
+    req.auditLog = {
+      action: 'UPDATE_RISK_ASSESSMENT',
+      entityType: 'TenantRiskAssessment',
+      entityId: riskAssessment.id,
+      changes: req.body,
+    };
+    
+    res.json({ riskAssessment });
+  } catch (error) {
+    console.error('Update risk assessment error:', error);
+    res.status(500).json({ error: 'Failed to update risk assessment' });
+  }
+});
+
+// ===== SUPPORT PLAN =====
+router.put('/:id/support-plan', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(supportPlanSchema), async (req: AuditableRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    const supportPlan = await prisma.tenantSupportPlan.upsert({
+      where: { tenantId: id },
+      create: {
+        tenantId: id,
+        ...req.body,
+      },
+      update: req.body,
+    });
+    
+    req.auditLog = {
+      action: 'UPDATE_SUPPORT_PLAN',
+      entityType: 'TenantSupportPlan',
+      entityId: supportPlan.id,
+      changes: req.body,
+    };
+    
+    res.json({ supportPlan });
+  } catch (error) {
+    console.error('Update support plan error:', error);
+    res.status(500).json({ error: 'Failed to update support plan' });
+  }
+});
+
+// ===== FINANCE =====
+router.put('/:id/finance', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(financeSchema), async (req: AuditableRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    const finance = await prisma.tenantFinance.upsert({
+      where: { tenantId: id },
+      create: {
+        tenantId: id,
+        ...req.body,
+      },
+      update: req.body,
+    });
+    
+    req.auditLog = {
+      action: 'UPDATE_FINANCE',
+      entityType: 'TenantFinance',
+      entityId: finance.id,
+      changes: req.body,
+    };
+    
+    res.json({ finance });
+  } catch (error) {
+    console.error('Update finance error:', error);
+    res.status(500).json({ error: 'Failed to update finance' });
+  }
+});
+
+// ===== CONSENTS =====
+router.put('/:id/consents', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(consentSchema), async (req: AuditableRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    // Auto-set timestamps for signed consents
+    const updateData: any = { ...req.body };
+    const now = new Date();
+    
+    if (req.body.authorizationFormSigned) updateData.authorizationFormSignedAt = now;
+    if (req.body.confidentialityWaiverSigned) updateData.confidentialityWaiverSignedAt = now;
+    if (req.body.fireEvacuationAcknowledged) updateData.fireEvacuationAcknowledgedAt = now;
+    if (req.body.licenceAgreementSigned) updateData.licenceAgreementSignedAt = now;
+    if (req.body.missingPersonFormSigned) updateData.missingPersonFormSignedAt = now;
+    if (req.body.nilIncomeFormSigned) updateData.nilIncomeFormSignedAt = now;
+    if (req.body.serviceChargeAgreementSigned) updateData.serviceChargeAgreementSignedAt = now;
+    if (req.body.supportAgreementSigned) updateData.supportAgreementSignedAt = now;
+    if (req.body.supportNeedsAssessmentSigned) updateData.supportNeedsAssessmentSignedAt = now;
+    if (req.body.photoIdConsentGiven) updateData.photoIdConsentGivenAt = now;
+    
+    const consents = await prisma.tenantConsent.upsert({
+      where: { tenantId: id },
+      create: {
+        tenantId: id,
+        ...updateData,
+      },
+      update: updateData,
+    });
+    
+    req.auditLog = {
+      action: 'UPDATE_CONSENTS',
+      entityType: 'TenantConsent',
+      entityId: consents.id,
+      changes: req.body,
+    };
+    
+    res.json({ consents });
+  } catch (error) {
+    console.error('Update consents error:', error);
+    res.status(500).json({ error: 'Failed to update consents' });
+  }
+});
+
+// ===== MISSING PERSON PROFILE =====
+router.put('/:id/missing-person-profile', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(missingPersonProfileSchema), async (req: AuditableRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    const missingPersonProfile = await prisma.missingPersonProfile.upsert({
+      where: { tenantId: id },
+      create: {
+        tenantId: id,
+        ...req.body,
+      },
+      update: req.body,
+    });
+    
+    req.auditLog = {
+      action: 'UPDATE_MISSING_PERSON_PROFILE',
+      entityType: 'MissingPersonProfile',
+      entityId: missingPersonProfile.id,
+      changes: req.body,
+    };
+    
+    res.json({ missingPersonProfile });
+  } catch (error) {
+    console.error('Update missing person profile error:', error);
+    res.status(500).json({ error: 'Failed to update missing person profile' });
+  }
+});
+
+// ===== INVENTORY LOGS =====
+router.post('/:id/inventory-logs', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(inventoryLogSchema), async (req: AuditableRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    const inventoryLog = await prisma.inventoryLog.create({
+      data: {
+        tenantId: id,
+        ...req.body,
+      },
+    });
+    
+    req.auditLog = {
+      action: 'CREATE_INVENTORY_LOG',
+      entityType: 'InventoryLog',
+      entityId: inventoryLog.id,
+      changes: req.body,
+    };
+    
+    res.status(201).json({ inventoryLog });
+  } catch (error) {
+    console.error('Create inventory log error:', error);
+    res.status(500).json({ error: 'Failed to create inventory log' });
+  }
+});
+
+router.get('/:id/inventory-logs', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    const inventoryLogs = await prisma.inventoryLog.findMany({
+      where: { tenantId: id },
+      orderBy: { checkInDate: 'desc' },
+    });
+    
+    res.json({ inventoryLogs });
+  } catch (error) {
+    console.error('Get inventory logs error:', error);
+    res.status(500).json({ error: 'Failed to get inventory logs' });
+  }
+});
+
+// ===== SERVICE CHARGE RECORDS =====
+router.post('/:id/service-charges', authorize('ADMIN', 'OPS'), validate(serviceChargeRecordSchema), async (req: AuditableRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    const serviceChargeRecord = await prisma.serviceChargeRecord.create({
+      data: {
+        tenantId: id,
+        ...req.body,
+      },
+    });
+    
+    req.auditLog = {
+      action: 'CREATE_SERVICE_CHARGE',
+      entityType: 'ServiceChargeRecord',
+      entityId: serviceChargeRecord.id,
+      changes: req.body,
+    };
+    
+    res.status(201).json({ serviceChargeRecord });
+  } catch (error) {
+    console.error('Create service charge error:', error);
+    res.status(500).json({ error: 'Failed to create service charge' });
+  }
+});
+
+router.get('/:id/service-charges', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    const serviceCharges = await prisma.serviceChargeRecord.findMany({
+      where: { tenantId: id },
+      orderBy: { weekStartDate: 'desc' },
+    });
+    
+    res.json({ serviceCharges });
+  } catch (error) {
+    console.error('Get service charges error:', error);
+    res.status(500).json({ error: 'Failed to get service charges' });
+  }
+});
+
+// ===== EMERGENCY CONTACTS =====
+router.post('/:id/emergency-contacts', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(emergencyContactSchema), async (req: AuditableRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    // If this contact is marked as primary, unset other primary contacts
+    if (req.body.isPrimary) {
+      await prisma.tenantEmergencyContact.updateMany({
+        where: { tenantId: id },
+        data: { isPrimary: false },
+      });
+    }
+    
+    const emergencyContact = await prisma.tenantEmergencyContact.create({
+      data: {
+        tenantId: id,
+        ...req.body,
+      },
+    });
+    
+    req.auditLog = {
+      action: 'CREATE_EMERGENCY_CONTACT',
+      entityType: 'TenantEmergencyContact',
+      entityId: emergencyContact.id,
+      changes: req.body,
+    };
+    
+    res.status(201).json({ emergencyContact });
+  } catch (error) {
+    console.error('Create emergency contact error:', error);
+    res.status(500).json({ error: 'Failed to create emergency contact' });
+  }
+});
+
+router.get('/:id/emergency-contacts', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user!.organizationId;
+    
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Organization context required' });
+    }
+    
+    const tenant = await prisma.tenant.findFirst({
+      where: { id, organizationId },
+    });
+    
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+    
+    const emergencyContacts = await prisma.tenantEmergencyContact.findMany({
+      where: { tenantId: id },
+      orderBy: [
+        { isPrimary: 'desc' },
+        { createdAt: 'asc' },
+      ],
+    });
+    
+    res.json({ emergencyContacts });
+  } catch (error) {
+    console.error('Get emergency contacts error:', error);
+    res.status(500).json({ error: 'Failed to get emergency contacts' });
   }
 });
 

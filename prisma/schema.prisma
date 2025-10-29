@@ -245,17 +245,20 @@ model Tenant {
   createdAt               DateTime     @default(now())
   updatedAt               DateTime     @updatedAt
 
-  organization      Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  tenancies         Tenancy[]
-  documents         Document[]
-  profile           TenantProfile?
-  emergencyContacts TenantEmergencyContact[]
-  finance           TenantFinance?
-  riskAssessment    TenantRiskAssessment?
-  supportPlan       TenantSupportPlan?
-  consents          TenantConsent?
-  incidents         Incident[]
-  supportNotes      SupportNote[]
+  organization        Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenancies           Tenancy[]
+  documents           Document[]
+  profile             TenantProfile?
+  emergencyContacts   TenantEmergencyContact[]
+  finance             TenantFinance?
+  riskAssessment      TenantRiskAssessment?
+  supportPlan         TenantSupportPlan?
+  consents            TenantConsent?
+  missingPersonProfile MissingPersonProfile?
+  inventoryLogs       InventoryLog[]
+  serviceChargeRecords ServiceChargeRecord[]
+  incidents           Incident[]
+  supportNotes        SupportNote[]
 
   @@index([organizationId])
   @@map("tenants")
@@ -390,19 +393,21 @@ model TenantEmergencyContact {
 }
 
 model TenantFinance {
-  id                 String        @id @default(uuid())
-  tenantId           String        @unique
-  incomeSource       IncomeSource?
-  benefitType        String?
-  benefitAmount      Decimal?      @db.Decimal(10, 2)
-  benefitFrequency   String?
-  hasNilIncome       Boolean       @default(false)
-  employmentDetails  String?
-  debtDetails        String?
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  id                       String        @id @default(uuid())
+  tenantId                 String        @unique
+  incomeSource             IncomeSource?
+  benefitType              String?
+  benefitAmount            Decimal?      @db.Decimal(10, 2)
+  benefitFrequency         String?
+  hasNilIncome             Boolean       @default(false)
+  nilIncomeExplanation     String?       @db.Text
+  councilAuthorizationAgreed Boolean     @default(false)
+  employmentDetails        String?
+  debtDetails              String?
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
 
-  tenant             Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant                   Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("tenant_finance")
 }
@@ -467,30 +472,129 @@ model TenantConsent {
   tenantId                     String    @unique
   authorizationFormSigned      Boolean   @default(false)
   authorizationFormSignedAt    DateTime?
+  authorizationFormSignature   String?   // Base64 encoded signature image
   confidentialityWaiverSigned  Boolean   @default(false)
   confidentialityWaiverSignedAt DateTime?
+  confidentialityWaiverSignature String?
   fireEvacuationAcknowledged   Boolean   @default(false)
   fireEvacuationAcknowledgedAt DateTime?
+  fireEvacuationSignature      String?
   licenceAgreementSigned       Boolean   @default(false)
   licenceAgreementSignedAt     DateTime?
+  licenceAgreementSignature    String?
   missingPersonFormSigned      Boolean   @default(false)
   missingPersonFormSignedAt    DateTime?
+  missingPersonFormSignature   String?
   nilIncomeFormSigned          Boolean   @default(false)
   nilIncomeFormSignedAt        DateTime?
+  nilIncomeFormSignature       String?
   serviceChargeAgreementSigned Boolean   @default(false)
   serviceChargeAgreementSignedAt DateTime?
+  serviceChargeAgreementSignature String?
   supportAgreementSigned       Boolean   @default(false)
   supportAgreementSignedAt     DateTime?
+  supportAgreementSignature    String?
   supportNeedsAssessmentSigned Boolean   @default(false)
   supportNeedsAssessmentSignedAt DateTime?
+  supportNeedsAssessmentSignature String?
   photoIdConsentGiven          Boolean   @default(false)
   photoIdConsentGivenAt        DateTime?
+  photoIdConsentType           String?   // "PROVIDED_ID", "PERMISSION_TO_PHOTOGRAPH", "DECLINE"
+  photoIdConsentSignature      String?
   createdAt                    DateTime  @default(now())
   updatedAt                    DateTime  @updatedAt
 
   tenant                       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("tenant_consents")
+}
+
+model MissingPersonProfile {
+  id                    String   @id @default(uuid())
+  tenantId              String   @unique
+  height                String?
+  shoeSize              String?
+  clothingSize          String?
+  build                 String?  // e.g., "small", "medium", "large"
+  distinguishingMarks   String?  @db.Text // Tattoos, birthmarks, scars
+  skinTone              String?
+  hairColor             String?
+  eyeColor              String?
+  vehicleDetails        String?  @db.Text // Make, color, registration
+  potentialRiskDetails  String?  @db.Text
+  likelyDestinations    String?  @db.Text // Areas/places they might visit
+  employerOrCollege     String?  // Name, address, contact
+  additionalNotes       String?  @db.Text
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("missing_person_profiles")
+}
+
+model InventoryLog {
+  id                    String   @id @default(uuid())
+  tenantId              String
+  roomId                String?
+  checkInDate           DateTime @default(now())
+  checkOutDate          DateTime?
+  
+  // Bedding provided
+  hasQuilt              Boolean  @default(false)
+  hasPillow             Boolean  @default(false)
+  hasDuvetCover         Boolean  @default(false)
+  hasFittedSheet        Boolean  @default(false)
+  hasWindowDressing     Boolean  @default(false)
+  
+  // Furniture provided
+  hasWardrobe           Boolean  @default(false)
+  hasChestOfDrawers     Boolean  @default(false)
+  hasBed                Boolean  @default(false)
+  hasMattress           Boolean  @default(false)
+  keysIssued            Int      @default(0)
+  
+  // Room condition at check-in
+  isCleanAndTidy        Boolean  @default(false)
+  floorWallGoodCondition Boolean  @default(false)
+  electricsWorking      Boolean  @default(false)
+  structureGoodCondition Boolean  @default(false)
+  
+  // Check-out condition
+  checkOutClean         Boolean?
+  checkOutDamages       String?  @db.Text
+  
+  notes                 String?  @db.Text
+  conditionPhotos       Json?    // Array of photo URLs/paths
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("inventory_logs")
+}
+
+model ServiceChargeRecord {
+  id                    String   @id @default(uuid())
+  tenantId              String
+  weekStartDate         DateTime
+  weekEndDate           DateTime
+  chargeAmount          Decimal  @db.Decimal(10, 2) // e.g., £20.00 per week
+  isPaid                Boolean  @default(false)
+  paidAt                DateTime?
+  paidAmount            Decimal? @db.Decimal(10, 2)
+  paymentMethod         String?  // "Cash", "Bank Transfer", "Benefits"
+  notes                 String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([weekStartDate])
+  @@index([isPaid])
+  @@map("service_charge_records")
 }
 
 // New models for multi-tenant SaaS features
