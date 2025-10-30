@@ -466,7 +466,7 @@ export default function TenantOnboardingV2() {
   const createFinancialDeclarationMutation = useMutation({
     mutationFn: async (data: FinancialData) => {
       if (!tenantId) throw new Error('No tenant ID');
-      const response = await apiRequest('POST', `/api/tenants/${tenantId}/financial-declaration`, data);
+      const response = await apiRequest('PUT', `/api/tenants/${tenantId}/finance`, data);
       return response.json();
     },
     onSuccess: () => {
