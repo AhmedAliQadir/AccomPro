@@ -61,20 +61,20 @@ const diversitySchema = z.object({
       'ASIAN_INDIAN', 'ASIAN_PAKISTANI', 'ASIAN_BANGLADESHI', 'ASIAN_OTHER',
       'BLACK_AFRICAN', 'BLACK_CARIBBEAN', 'BLACK_OTHER',
       'CHINESE', 'OTHER', 'PREFER_NOT_TO_SAY'
-    ]).optional()
+    ], { errorMap: () => ({ message: 'Please select a valid ethnicity from the dropdown' }) }).optional()
   ),
   religion: z.preprocess(
     (val) => val === '' ? undefined : val,
     z.enum([
       'CHRISTIAN', 'MUSLIM', 'HINDU', 'SIKH', 'JEWISH', 'BUDDHIST',
       'NO_RELIGION', 'OTHER', 'PREFER_NOT_TO_SAY'
-    ]).optional()
+    ], { errorMap: () => ({ message: 'Please select a valid religion from the dropdown' }) }).optional()
   ),
   sexualOrientation: z.preprocess(
     (val) => val === '' ? undefined : val,
     z.enum([
       'HETEROSEXUAL', 'HOMOSEXUAL', 'LESBIAN', 'BISEXUAL', 'TRANSGENDER', 'OTHER', 'PREFER_NOT_TO_SAY'
-    ]).optional()
+    ], { errorMap: () => ({ message: 'Please select a valid option from the dropdown' }) }).optional()
   ),
   disabilities: z.string().optional(),
   communicationNeeds: z.string().optional(),
