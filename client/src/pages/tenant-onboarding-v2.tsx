@@ -333,9 +333,9 @@ export default function TenantOnboardingV2() {
   const diversityForm = useForm<DiversityData>({
     resolver: zodResolver(diversitySchema),
     defaultValues: {
-      ethnicity: undefined,
-      religion: undefined,
-      sexualOrientation: undefined,
+      ethnicity: '' as any,
+      religion: '' as any,
+      sexualOrientation: '' as any,
       disabilities: '',
       communicationNeeds: '',
     },
@@ -786,9 +786,9 @@ export default function TenantOnboardingV2() {
     });
     
     diversityForm.reset({
-      ethnicity: undefined,
-      religion: undefined,
-      sexualOrientation: undefined,
+      ethnicity: '' as any,
+      religion: '' as any,
+      sexualOrientation: '' as any,
       disabilities: '',
       communicationNeeds: '',
     });
