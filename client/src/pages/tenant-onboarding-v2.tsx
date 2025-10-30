@@ -477,10 +477,10 @@ export default function TenantOnboardingV2() {
   const financialForm = useForm<FinancialData>({
     resolver: zodResolver(financialSchema),
     defaultValues: {
-      incomeSource: undefined,
+      incomeSource: '' as any,
       benefitType: '',
       benefitAmount: undefined,
-      benefitFrequency: undefined,
+      benefitFrequency: '' as any,
       hasNilIncome: false,
       nilIncomeExplanation: '',
       councilAuthorizationAgreed: false,
@@ -852,10 +852,10 @@ export default function TenantOnboardingV2() {
     });
     
     financialForm.reset({
-      incomeSource: undefined,
+      incomeSource: '' as any,
       benefitType: '',
       benefitAmount: undefined,
-      benefitFrequency: undefined,
+      benefitFrequency: '' as any,
       hasNilIncome: false,
       nilIncomeExplanation: '',
       councilAuthorizationAgreed: false,
