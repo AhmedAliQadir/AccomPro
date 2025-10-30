@@ -760,16 +760,116 @@ export default function TenantOnboardingV2() {
     // Clear localStorage
     localStorage.removeItem('tenantOnboardingDraft');
     
-    // Reset all forms to defaults
-    preIntakeForm.reset();
-    personalIdentityForm.reset();
-    diversityForm.reset();
-    healthForm.reset();
-    riskAssessmentForm.reset();
-    financialForm.reset();
-    housingAllocationForm.reset();
-    supportFrameworkForm.reset();
-    legalAgreementsForm.reset();
+    // Reset all forms to explicit empty defaults
+    preIntakeForm.reset({
+      referralSource: '',
+      referralDate: '',
+      isEmergencyAdmission: false,
+      eligibilityConfirmed: false,
+    });
+    
+    personalIdentityForm.reset({
+      firstName: '',
+      lastName: '',
+      dateOfBirth: '',
+      email: '',
+      phone: '',
+      title: '',
+      nationality: '',
+      languagesSpoken: '',
+      nationalInsuranceNumber: '',
+      maritalStatus: '',
+      previousAddress: '',
+      placeOfBirth: '',
+    });
+    
+    diversityForm.reset({
+      ethnicity: undefined,
+      religion: undefined,
+      sexualOrientation: undefined,
+      disabilities: '',
+      communicationNeeds: '',
+    });
+    
+    healthForm.reset({
+      hasMentalHealth: false,
+      mentalHealthDetails: '',
+      mentalHealthDiagnosis: '',
+      prescribedMedication: '',
+      doctorName: '',
+      doctorPhone: '',
+      gpPractice: '',
+      cpnName: '',
+      cpnPhone: '',
+      psychiatristName: '',
+      psychiatristPhone: '',
+    });
+    
+    riskAssessmentForm.reset({
+      hasCriminalRecord: false,
+      criminalRecordDetails: '',
+      hasDrugUse: false,
+      drugUseDetails: '',
+      hasAlcoholIssue: false,
+      alcoholDetails: '',
+      hasSuicidalThoughts: false,
+      suicidalThoughtsDetails: '',
+      hasSelfHarmHistory: false,
+      selfHarmDetails: '',
+      hasSocialWorker: false,
+      socialWorkerDetails: '',
+      hasProbationOfficer: false,
+      probationOfficerName: '',
+      probationOfficerPhone: '',
+      probationDetails: '',
+      riskNotes: '',
+    });
+    
+    financialForm.reset({
+      incomeSource: undefined,
+      benefitType: '',
+      benefitAmount: undefined,
+      benefitFrequency: undefined,
+      hasNilIncome: false,
+      nilIncomeExplanation: '',
+      councilAuthorizationAgreed: false,
+      employmentDetails: '',
+      debtDetails: '',
+    });
+    
+    housingAllocationForm.reset({
+      propertyId: '',
+      roomId: '',
+      startDate: '',
+      serviceChargeAmount: undefined,
+    });
+    
+    supportFrameworkForm.reset({
+      supportNeeds: '',
+      supportGoals: '',
+      budgetPlanAgreed: false,
+      employmentSupport: false,
+      lifeSkillsSupport: false,
+      healthSupport: false,
+      reviewFrequency: '',
+      nextReviewDate: '',
+      supportWorkerNotes: '',
+    });
+    
+    legalAgreementsForm.reset({
+      authorizationFormSigned: false,
+      authorizationFormSignature: '',
+      confidentialityWaiverSigned: false,
+      confidentialityWaiverSignature: '',
+      fireEvacuationAcknowledged: false,
+      fireEvacuationSignature: '',
+      licenceAgreementSigned: false,
+      licenceAgreementSignature: '',
+      serviceChargeAgreementSigned: false,
+      serviceChargeAgreementSignature: '',
+      supportAgreementSigned: false,
+      supportAgreementSignature: '',
+    });
     
     // Reset state
     setStep(1);
