@@ -45,6 +45,11 @@ export const riskAssessmentSchema = z.object({
   probationDetails: z.string().optional(),
   doctorName: z.string().optional(),
   doctorPhone: z.string().optional(),
+  gpPractice: z.string().optional(),
+  cpnName: z.string().optional(),
+  cpnPhone: z.string().optional(),
+  psychiatristName: z.string().optional(),
+  psychiatristPhone: z.string().optional(),
   riskNotes: z.string().optional(),
 });
 

@@ -437,6 +437,11 @@ model TenantRiskAssessment {
   probationDetails        String?
   doctorName              String?
   doctorPhone             String?
+  gpPractice              String?
+  cpnName                 String?
+  cpnPhone                String?
+  psychiatristName        String?
+  psychiatristPhone       String?
   riskNotes               String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
