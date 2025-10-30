@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -131,7 +131,10 @@ const financialSchema = z.object({
     ]).optional()
   ),
   benefitType: z.string().optional(),
-  benefitAmount: z.coerce.number().positive().optional(), // Use coerce to convert string to number
+  benefitAmount: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? undefined : val,
+    z.coerce.number().positive().optional()
+  ),
   benefitFrequency: z.preprocess(
     (val) => val === '' ? undefined : val,
     z.enum(['WEEKLY', 'FORTNIGHTLY', 'MONTHLY']).optional()
@@ -144,6 +147,52 @@ const financialSchema = z.object({
 });
 
 type FinancialData = z.infer<typeof financialSchema>;
+
+// Step 7: Housing Allocation (aligned with createTenancySchema)
+const housingAllocationSchema = z.object({
+  propertyId: z.string().min(1, 'Property selection is required'),
+  roomId: z.string().min(1, 'Room selection is required'),
+  startDate: z.string().min(1, 'Move-in date is required'),
+  serviceChargeAmount: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? undefined : val,
+    z.coerce.number().positive().optional()
+  ),
+});
+
+type HousingAllocationData = z.infer<typeof housingAllocationSchema>;
+
+// Step 8: Support Framework (aligned with supportPlanSchema)
+const supportFrameworkSchema = z.object({
+  supportNeeds: z.string().optional(),
+  supportGoals: z.string().optional(),
+  budgetPlanAgreed: z.boolean().default(false),
+  employmentSupport: z.boolean().default(false),
+  lifeSkillsSupport: z.boolean().default(false),
+  healthSupport: z.boolean().default(false),
+  reviewFrequency: z.string().optional(),
+  nextReviewDate: z.string().optional(),
+  supportWorkerNotes: z.string().optional(),
+});
+
+type SupportFrameworkData = z.infer<typeof supportFrameworkSchema>;
+
+// Step 9: Legal Agreements (aligned with consentSchema)
+const legalAgreementsSchema = z.object({
+  authorizationFormSigned: z.boolean().default(false),
+  authorizationFormSignature: z.string().optional(),
+  confidentialityWaiverSigned: z.boolean().default(false),
+  confidentialityWaiverSignature: z.string().optional(),
+  fireEvacuationAcknowledged: z.boolean().default(false),
+  fireEvacuationSignature: z.string().optional(),
+  licenceAgreementSigned: z.boolean().default(false),
+  licenceAgreementSignature: z.string().optional(),
+  serviceChargeAgreementSigned: z.boolean().default(false),
+  serviceChargeAgreementSignature: z.string().optional(),
+  supportAgreementSigned: z.boolean().default(false),
+  supportAgreementSignature: z.string().optional(),
+});
+
+type LegalAgreementsData = z.infer<typeof legalAgreementsSchema>;
 
 // ============================================================
 // CONSTANTS
@@ -438,6 +487,145 @@ export default function TenantOnboardingV2() {
   });
 
   // ============================================================
+  // STEP 7: HOUSING ALLOCATION FORM
+  // ============================================================
+
+  const housingAllocationForm = useForm<HousingAllocationData>({
+    resolver: zodResolver(housingAllocationSchema),
+    defaultValues: {
+      propertyId: '',
+      roomId: '',
+      startDate: '',
+      serviceChargeAmount: undefined,
+    },
+  });
+
+  // Fetch properties with rooms for selection
+  const { data: propertiesData } = useQuery<{ properties: any[] }>({
+    queryKey: ['/api/properties'],
+    enabled: step === 7, // Only fetch when on Step 7
+  });
+
+  const selectedPropertyId = housingAllocationForm.watch('propertyId');
+  const availableRooms = propertiesData?.properties?.find((p: any) => p.id === selectedPropertyId)?.rooms || [];
+
+  const createTenancyMutation = useMutation({
+    mutationFn: async (data: HousingAllocationData) => {
+      if (!tenantId) throw new Error('No tenant ID');
+      const payload = {
+        tenantId,
+        roomId: data.roomId,
+        startDate: data.startDate,
+        serviceChargeAmount: data.serviceChargeAmount,
+      };
+      const response = await apiRequest('POST', `/api/tenants/${tenantId}/tenancies`, payload);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Saved',
+        description: 'Housing allocation has been saved.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/tenants'] });
+      setStep(8);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to save',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // ============================================================
+  // STEP 8: SUPPORT FRAMEWORK FORM
+  // ============================================================
+
+  const supportFrameworkForm = useForm<SupportFrameworkData>({
+    resolver: zodResolver(supportFrameworkSchema),
+    defaultValues: {
+      supportNeeds: '',
+      supportGoals: '',
+      budgetPlanAgreed: false,
+      employmentSupport: false,
+      lifeSkillsSupport: false,
+      healthSupport: false,
+      reviewFrequency: '',
+      nextReviewDate: '',
+      supportWorkerNotes: '',
+    },
+  });
+
+  const createSupportPlanMutation = useMutation({
+    mutationFn: async (data: SupportFrameworkData) => {
+      if (!tenantId) throw new Error('No tenant ID');
+      const response = await apiRequest('PUT', `/api/tenants/${tenantId}/support-plan`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Saved',
+        description: 'Support framework has been saved.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/tenants'] });
+      setStep(9);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to save',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // ============================================================
+  // STEP 9: LEGAL AGREEMENTS FORM
+  // ============================================================
+
+  const legalAgreementsForm = useForm<LegalAgreementsData>({
+    resolver: zodResolver(legalAgreementsSchema),
+    defaultValues: {
+      authorizationFormSigned: false,
+      authorizationFormSignature: '',
+      confidentialityWaiverSigned: false,
+      confidentialityWaiverSignature: '',
+      fireEvacuationAcknowledged: false,
+      fireEvacuationSignature: '',
+      licenceAgreementSigned: false,
+      licenceAgreementSignature: '',
+      serviceChargeAgreementSigned: false,
+      serviceChargeAgreementSignature: '',
+      supportAgreementSigned: false,
+      supportAgreementSignature: '',
+    },
+  });
+
+  const createConsentsMutation = useMutation({
+    mutationFn: async (data: LegalAgreementsData) => {
+      if (!tenantId) throw new Error('No tenant ID');
+      const response = await apiRequest('PUT', `/api/tenants/${tenantId}/consents`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Saved',
+        description: 'Legal agreements have been saved.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/tenants'] });
+      setStep(10);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to save',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // ============================================================
   // AUTOSAVE TO LOCALSTORAGE
   // ============================================================
 
@@ -452,6 +640,9 @@ export default function TenantOnboardingV2() {
         health: healthForm.getValues(),
         riskAssessment: riskAssessmentForm.getValues(),
         financial: financialForm.getValues(),
+        housingAllocation: housingAllocationForm.getValues(),
+        supportFramework: supportFrameworkForm.getValues(),
+        legalAgreements: legalAgreementsForm.getValues(),
         lastSaved: new Date().toISOString(),
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(draftData));
@@ -459,7 +650,7 @@ export default function TenantOnboardingV2() {
     }, AUTOSAVE_INTERVAL);
 
     return () => clearInterval(saveInterval);
-  }, [step, tenantId, preIntakeForm, personalIdentityForm, diversityForm, healthForm, riskAssessmentForm, financialForm]);
+  }, [step, tenantId, preIntakeForm, personalIdentityForm, diversityForm, healthForm, riskAssessmentForm, financialForm, housingAllocationForm, supportFrameworkForm, legalAgreementsForm]);
 
   // Load draft data on mount
   useEffect(() => {
@@ -497,6 +688,15 @@ export default function TenantOnboardingV2() {
         }
         if (draft.financial) {
           financialForm.reset(draft.financial);
+        }
+        if (draft.housingAllocation) {
+          housingAllocationForm.reset(draft.housingAllocation);
+        }
+        if (draft.supportFramework) {
+          supportFrameworkForm.reset(draft.supportFramework);
+        }
+        if (draft.legalAgreements) {
+          legalAgreementsForm.reset(draft.legalAgreements);
         }
         
         toast({
@@ -538,6 +738,18 @@ export default function TenantOnboardingV2() {
 
   const handleStep6Submit = async (data: FinancialData) => {
     await createFinancialDeclarationMutation.mutateAsync(data);
+  };
+
+  const handleStep7Submit = async (data: HousingAllocationData) => {
+    await createTenancyMutation.mutateAsync(data);
+  };
+
+  const handleStep8Submit = async (data: SupportFrameworkData) => {
+    await createSupportPlanMutation.mutateAsync(data);
+  };
+
+  const handleStep9Submit = async (data: LegalAgreementsData) => {
+    await createConsentsMutation.mutateAsync(data);
   };
 
   const handleBack = () => {
@@ -2037,6 +2249,585 @@ export default function TenantOnboardingV2() {
     );
   };
 
+  // ============================================================
+  // STEP 7: HOUSING ALLOCATION
+  // ============================================================
+
+  const renderStep7 = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Housing Allocation</CardTitle>
+        <CardDescription>Property and room assignment details</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...housingAllocationForm}>
+          <form onSubmit={housingAllocationForm.handleSubmit(handleStep7Submit)} className="space-y-6">
+            <FormField
+              control={housingAllocationForm.control}
+              name="propertyId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Property *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger data-testid="select-property">
+                        <SelectValue placeholder="Select property" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {propertiesData?.properties?.map((property: any) => (
+                        <SelectItem key={property.id} value={property.id}>
+                          {property.name} - {property.address}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={housingAllocationForm.control}
+              name="roomId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Room *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={!selectedPropertyId}>
+                    <FormControl>
+                      <SelectTrigger data-testid="select-room">
+                        <SelectValue placeholder="Select room" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {availableRooms.map((room: any) => (
+                        <SelectItem key={room.id} value={room.id}>
+                          Room {room.roomNumber} (Floor {room.floor || 'Ground'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    {selectedPropertyId ? 'Select an available room' : 'Please select a property first'}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={housingAllocationForm.control}
+              name="startDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Move-In Date *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      data-testid="input-start-date"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={housingAllocationForm.control}
+              name="serviceChargeAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Service Charge Amount (£/week)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      data-testid="input-service-charge"
+                      placeholder="0.00"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-between">
+              <Button type="button" variant="outline" onClick={handleBack} data-testid="button-back">
+                <ArrowLeft className="mr-2 w-4 h-4" />
+                Back
+              </Button>
+              <Button type="submit" data-testid="button-next" disabled={createTenancyMutation.isPending}>
+                {createTenancyMutation.isPending ? 'Saving...' : 'Next: Support Framework'}
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+
+  // ============================================================
+  // STEP 8: SUPPORT FRAMEWORK
+  // ============================================================
+
+  const renderStep8 = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Support Framework</CardTitle>
+        <CardDescription>Support needs assessment and planning</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...supportFrameworkForm}>
+          <form onSubmit={supportFrameworkForm.handleSubmit(handleStep8Submit)} className="space-y-6">
+            <FormField
+              control={supportFrameworkForm.control}
+              name="supportNeeds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Support Needs</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      data-testid="textarea-support-needs"
+                      placeholder="Describe the tenant's support needs..."
+                      rows={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={supportFrameworkForm.control}
+              name="supportGoals"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Support Goals</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      data-testid="textarea-support-goals"
+                      placeholder="Key goals for support plan..."
+                      rows={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="space-y-4">
+              <p className="text-sm font-medium">Support Areas</p>
+              
+              <FormField
+                control={supportFrameworkForm.control}
+                name="budgetPlanAgreed"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        data-testid="checkbox-budget-plan"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Budget Planning Support</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={supportFrameworkForm.control}
+                name="employmentSupport"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        data-testid="checkbox-employment-support"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Employment Support</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={supportFrameworkForm.control}
+                name="lifeSkillsSupport"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        data-testid="checkbox-life-skills"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Life Skills Support</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={supportFrameworkForm.control}
+                name="healthSupport"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        data-testid="checkbox-health-support"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Health & Wellbeing Support</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={supportFrameworkForm.control}
+                name="reviewFrequency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Review Frequency</FormLabel>
+                    <FormControl>
+                      <Input
+                        data-testid="input-review-frequency"
+                        placeholder="e.g., Weekly, Monthly"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={supportFrameworkForm.control}
+                name="nextReviewDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Next Review Date</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        data-testid="input-next-review-date"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={supportFrameworkForm.control}
+              name="supportWorkerNotes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Support Worker Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      data-testid="textarea-support-notes"
+                      placeholder="Additional notes from support worker..."
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-between">
+              <Button type="button" variant="outline" onClick={handleBack} data-testid="button-back">
+                <ArrowLeft className="mr-2 w-4 h-4" />
+                Back
+              </Button>
+              <Button type="submit" data-testid="button-next" disabled={createSupportPlanMutation.isPending}>
+                {createSupportPlanMutation.isPending ? 'Saving...' : 'Next: Legal Agreements'}
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+
+  // ============================================================
+  // STEP 9: LEGAL AGREEMENTS
+  // ============================================================
+
+  const renderStep9 = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Legal Agreements & Consents</CardTitle>
+        <CardDescription>Required documentation and authorizations</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...legalAgreementsForm}>
+          <form onSubmit={legalAgreementsForm.handleSubmit(handleStep9Submit)} className="space-y-6">
+            <div className="space-y-4">
+              <FormField
+                control={legalAgreementsForm.control}
+                name="authorizationFormSigned"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
+                    <FormControl>
+                      <Checkbox
+                        data-testid="checkbox-authorization-form"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Authorization Form *</FormLabel>
+                      <FormDescription>
+                        I authorize the organization to contact relevant agencies on my behalf
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={legalAgreementsForm.control}
+                name="confidentialityWaiverSigned"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
+                    <FormControl>
+                      <Checkbox
+                        data-testid="checkbox-confidentiality-waiver"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Confidentiality Waiver *</FormLabel>
+                      <FormDescription>
+                        I understand how my personal information will be used and shared
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={legalAgreementsForm.control}
+                name="fireEvacuationAcknowledged"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
+                    <FormControl>
+                      <Checkbox
+                        data-testid="checkbox-fire-evacuation"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Fire Evacuation Procedures *</FormLabel>
+                      <FormDescription>
+                        I have been informed of and understand the fire evacuation procedures
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={legalAgreementsForm.control}
+                name="licenceAgreementSigned"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
+                    <FormControl>
+                      <Checkbox
+                        data-testid="checkbox-licence-agreement"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Licence Agreement *</FormLabel>
+                      <FormDescription>
+                        I agree to the terms and conditions of the licence agreement
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={legalAgreementsForm.control}
+                name="serviceChargeAgreementSigned"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
+                    <FormControl>
+                      <Checkbox
+                        data-testid="checkbox-service-charge"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Service Charge Agreement *</FormLabel>
+                      <FormDescription>
+                        I understand and agree to the service charge payment terms
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={legalAgreementsForm.control}
+                name="supportAgreementSigned"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
+                    <FormControl>
+                      <Checkbox
+                        data-testid="checkbox-support-agreement"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Support Agreement *</FormLabel>
+                      <FormDescription>
+                        I agree to actively participate in my support plan
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex justify-between">
+              <Button type="button" variant="outline" onClick={handleBack} data-testid="button-back">
+                <ArrowLeft className="mr-2 w-4 h-4" />
+                Back
+              </Button>
+              <Button type="submit" data-testid="button-next" disabled={createConsentsMutation.isPending}>
+                {createConsentsMutation.isPending ? 'Saving...' : 'Next: Review & Submit'}
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+
+  // ============================================================
+  // STEP 10: REVIEW & SUBMIT
+  // ============================================================
+
+  const renderStep10 = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Review & Submit</CardTitle>
+        <CardDescription>Review all information and complete onboarding</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="bg-muted p-6 rounded-md space-y-4">
+          <div className="flex items-center space-x-2">
+            <CheckCircle className="w-6 h-6 text-green-600" />
+            <h3 className="font-semibold text-lg">Onboarding Complete!</h3>
+          </div>
+          <p className="text-muted-foreground">
+            You have successfully completed all 9 steps of the tenant onboarding process. All information has been saved.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm">Pre-Intake</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm">Personal Identity</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm">Diversity</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm">Health & Medical</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm">Risk Assessment</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm">Financial Status</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm">Housing Allocation</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm">Support Framework</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm">Legal Agreements</span>
+            </div>
+          </div>
+        </div>
+
+        {tenantId && (
+          <div className="p-4 bg-muted rounded-md">
+            <p className="text-sm text-muted-foreground">
+              <strong>Tenant ID:</strong> {tenantId}
+            </p>
+          </div>
+        )}
+
+        <div className="flex justify-between">
+          <Button type="button" variant="outline" onClick={handleBack} data-testid="button-back">
+            <ArrowLeft className="mr-2 w-4 h-4" />
+            Back
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem(STORAGE_KEY);
+              toast({
+                title: 'Success',
+                description: 'Onboarding complete! Returning to dashboard...',
+              });
+              setTimeout(() => setLocation('/'), 1500);
+            }}
+            data-testid="button-finish"
+          >
+            Complete & Return to Dashboard
+            <CheckCircle className="ml-2 w-4 h-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -2051,15 +2842,20 @@ export default function TenantOnboardingV2() {
         return renderStep5();
       case 6:
         return renderStep6();
+      case 7:
+        return renderStep7();
+      case 8:
+        return renderStep8();
+      case 9:
+        return renderStep9();
+      case 10:
+        return renderStep10();
       default:
         return (
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">
-                Steps 3-10 will follow the same pattern as Steps 1-2.
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Each step will have: react-hook-form + Zod validation + API mutations + autosave
+                Invalid step number
               </p>
             </CardContent>
           </Card>

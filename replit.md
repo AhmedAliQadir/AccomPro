@@ -4,6 +4,8 @@
 
 AccommodateME is a multi-tenant SaaS platform designed for UK supported housing and social care providers. It enables organizations to manage Residents, Staff, Incidents, Compliance, Properties, and Documents within isolated workspaces. The platform's core purpose is to provide a unified system for various care organizations to independently manage their operations, from property and resident management to staff, incident tracking, and regulatory compliance. It targets UK housing associations, social services, and supported living providers requiring enterprise-grade tools with complete data isolation. The multi-tenancy model utilizes a shared database with row-level isolation via `organizationId` foreign keys, ensuring data segregation with automatic middleware filtering.
 
+**Latest Update (October 30, 2025):** Complete 10-step tenant onboarding wizard implementation capturing 80+ data points across Personal Identity, Benefits & Finance, Property Allocation, Risk & Safeguarding, Health & Support, Legal Consents, and Emergency Planning. Features react-hook-form integration, Zod validation, API persistence, autosave functionality, and digital signatures for regulatory compliance.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
