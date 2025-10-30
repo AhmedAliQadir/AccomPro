@@ -53,20 +53,29 @@ type PersonalIdentityData = z.infer<typeof personalIdentitySchema>;
 
 // Step 3: Diversity & Communication (aligned with tenantProfileSchema)
 const diversitySchema = z.object({
-  ethnicity: z.enum([
-    'WHITE_BRITISH', 'WHITE_IRISH', 'WHITE_OTHER',
-    'MIXED_WHITE_BLACK_CARIBBEAN', 'MIXED_WHITE_BLACK_AFRICAN', 'MIXED_WHITE_ASIAN', 'MIXED_OTHER',
-    'ASIAN_INDIAN', 'ASIAN_PAKISTANI', 'ASIAN_BANGLADESHI', 'ASIAN_OTHER',
-    'BLACK_AFRICAN', 'BLACK_CARIBBEAN', 'BLACK_OTHER',
-    'CHINESE', 'OTHER', 'PREFER_NOT_TO_SAY'
-  ]).optional(),
-  religion: z.enum([
-    'CHRISTIAN', 'MUSLIM', 'HINDU', 'SIKH', 'JEWISH', 'BUDDHIST',
-    'NO_RELIGION', 'OTHER', 'PREFER_NOT_TO_SAY'
-  ]).optional(),
-  sexualOrientation: z.enum([
-    'HETEROSEXUAL', 'HOMOSEXUAL', 'LESBIAN', 'BISEXUAL', 'TRANSGENDER', 'OTHER', 'PREFER_NOT_TO_SAY'
-  ]).optional(),
+  ethnicity: z.preprocess(
+    (val) => val === '' ? undefined : val,
+    z.enum([
+      'WHITE_BRITISH', 'WHITE_IRISH', 'WHITE_OTHER',
+      'MIXED_WHITE_BLACK_CARIBBEAN', 'MIXED_WHITE_BLACK_AFRICAN', 'MIXED_WHITE_ASIAN', 'MIXED_OTHER',
+      'ASIAN_INDIAN', 'ASIAN_PAKISTANI', 'ASIAN_BANGLADESHI', 'ASIAN_OTHER',
+      'BLACK_AFRICAN', 'BLACK_CARIBBEAN', 'BLACK_OTHER',
+      'CHINESE', 'OTHER', 'PREFER_NOT_TO_SAY'
+    ]).optional()
+  ),
+  religion: z.preprocess(
+    (val) => val === '' ? undefined : val,
+    z.enum([
+      'CHRISTIAN', 'MUSLIM', 'HINDU', 'SIKH', 'JEWISH', 'BUDDHIST',
+      'NO_RELIGION', 'OTHER', 'PREFER_NOT_TO_SAY'
+    ]).optional()
+  ),
+  sexualOrientation: z.preprocess(
+    (val) => val === '' ? undefined : val,
+    z.enum([
+      'HETEROSEXUAL', 'HOMOSEXUAL', 'LESBIAN', 'BISEXUAL', 'TRANSGENDER', 'OTHER', 'PREFER_NOT_TO_SAY'
+    ]).optional()
+  ),
   disabilities: z.string().optional(),
   communicationNeeds: z.string().optional(),
 });
@@ -115,12 +124,18 @@ type RiskAssessmentData = z.infer<typeof riskAssessmentSchema>;
 
 // Step 6: Financial Status (aligned with financeSchema)
 const financialSchema = z.object({
-  incomeSource: z.enum([
-    'ESA', 'DLA', 'JSA', 'UNIVERSAL_CREDIT', 'HOUSING_BENEFIT', 'NIL_INCOME', 'EMPLOYMENT', 'OTHER'
-  ]).optional(),
+  incomeSource: z.preprocess(
+    (val) => val === '' ? undefined : val,
+    z.enum([
+      'ESA', 'DLA', 'JSA', 'UNIVERSAL_CREDIT', 'HOUSING_BENEFIT', 'NIL_INCOME', 'EMPLOYMENT', 'OTHER'
+    ]).optional()
+  ),
   benefitType: z.string().optional(),
   benefitAmount: z.coerce.number().positive().optional(), // Use coerce to convert string to number
-  benefitFrequency: z.enum(['WEEKLY', 'FORTNIGHTLY', 'MONTHLY']).optional(),
+  benefitFrequency: z.preprocess(
+    (val) => val === '' ? undefined : val,
+    z.enum(['WEEKLY', 'FORTNIGHTLY', 'MONTHLY']).optional()
+  ),
   hasNilIncome: z.boolean().default(false),
   nilIncomeExplanation: z.string().optional(),
   councilAuthorizationAgreed: z.boolean().default(false),
@@ -1814,7 +1829,7 @@ export default function TenantOnboardingV2() {
                 )}
               />
 
-              {incomeSource && incomeSource !== 'NONE' && incomeSource !== 'EMPLOYMENT' && (
+              {incomeSource && incomeSource !== 'NIL_INCOME' && incomeSource !== 'EMPLOYMENT' && (
                 <div className="p-4 border rounded-md space-y-4">
                   <FormField
                     control={financialForm.control}
