@@ -449,7 +449,7 @@ export default function TenantOnboardingV2() {
         ...data,
       };
       
-      const response = await apiRequest('POST', `/api/tenants/${tenantId}/risk-assessment`, combinedData);
+      const response = await apiRequest('PUT', `/api/tenants/${tenantId}/risk-assessment`, combinedData);
       return response.json();
     },
     onSuccess: () => {
