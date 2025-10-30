@@ -15,6 +15,15 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { ArrowLeft, ArrowRight, Save, CheckCircle, Trash2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // ============================================================
 // TYPE DEFINITIONS (Aligned with Backend Schemas)
@@ -244,11 +253,25 @@ export default function TenantOnboardingV2() {
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
   const [tenantId, setTenantId] = useState<string | null>(null); // Track created tenant
+  const [showAgeWarning, setShowAgeWarning] = useState(false);
   const [preIntakeData, setPreIntakeData] = useState<PreIntakeData>({
     referralSource: '',
     isEmergencyAdmission: false,
     eligibilityConfirmed: false,
   });
+
+  // Helper function to calculate age from date of birth
+  const calculateAge = (dateOfBirth: string): number => {
+    if (!dateOfBirth) return 0;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   // ============================================================
   // STEP 1: PRE-INTAKE FORM
@@ -1102,6 +1125,13 @@ export default function TenantOnboardingV2() {
                         type="date"
                         data-testid="input-date-of-birth"
                         {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          const age = calculateAge(e.target.value);
+                          if (age > 0 && age < 18) {
+                            setShowAgeWarning(true);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -3024,6 +3054,23 @@ export default function TenantOnboardingV2() {
       {renderProgressBar()}
 
       <div className="mb-6">{renderStep()}</div>
+
+      {/* Age Warning Dialog */}
+      <AlertDialog open={showAgeWarning} onOpenChange={setShowAgeWarning}>
+        <AlertDialogContent data-testid="dialog-age-warning">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Age Verification Required</AlertDialogTitle>
+            <AlertDialogDescription>
+              Please make sure the new tenant age is over 18.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction data-testid="button-age-warning-ok">
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
