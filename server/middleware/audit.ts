@@ -21,6 +21,7 @@ export function createAuditLog() {
           .create({
             data: {
               userId: req.user.userId,
+              organizationId: req.user.organizationId,
               action: req.auditLog.action,
               entityType: req.auditLog.entityType,
               entityId: req.auditLog.entityId,
