@@ -1538,6 +1538,439 @@ export default function TenantOnboardingPage() {
     </Card>
   );
 
+  const renderStep7 = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Housing Allocation & Inventory</CardTitle>
+        <CardDescription>Room assignment and move-in inventory</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="room-id">Assigned Room *</Label>
+          <Input
+            id="room-id"
+            data-testid="input-room-id"
+            value={housingAllocation.roomId || ''}
+            onChange={(e) => updateHousingAllocation({ roomId: e.target.value })}
+            placeholder="Room ID (to be selected from available rooms)"
+          />
+          <p className="text-xs text-muted-foreground">
+            Note: In production, this would be a dropdown of available rooms
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="start-date">Licence Start Date *</Label>
+          <Input
+            id="start-date"
+            type="date"
+            data-testid="input-start-date"
+            value={housingAllocation.startDate || ''}
+            onChange={(e) => updateHousingAllocation({ startDate: e.target.value })}
+          />
+        </div>
+
+        <div className="space-y-3">
+          <Label>Bedding Provided</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { key: 'hasQuilt', label: 'Quilt' },
+              { key: 'hasPillow', label: 'Pillow' },
+              { key: 'hasDuvetCover', label: 'Duvet Cover' },
+              { key: 'hasFittedSheet', label: 'Fitted Sheet' },
+              { key: 'hasWindowDressing', label: 'Window Dressing' },
+            ].map(({ key, label }) => (
+              <div key={key} className="flex items-center space-x-2">
+                <Checkbox
+                  id={key}
+                  data-testid={`checkbox-${key}`}
+                  checked={housingAllocation[key as keyof typeof housingAllocation] as boolean}
+                  onCheckedChange={(checked) => updateHousingAllocation({ [key]: !!checked })}
+                />
+                <label htmlFor={key} className="text-sm cursor-pointer">{label}</label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <Label>Furniture Provided</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { key: 'hasWardrobe', label: 'Wardrobe' },
+              { key: 'hasChestOfDrawers', label: 'Chest of Drawers' },
+              { key: 'hasBed', label: 'Bed Frame' },
+              { key: 'hasMattress', label: 'Mattress' },
+            ].map(({ key, label }) => (
+              <div key={key} className="flex items-center space-x-2">
+                <Checkbox
+                  id={key}
+                  data-testid={`checkbox-${key}`}
+                  checked={housingAllocation[key as keyof typeof housingAllocation] as boolean}
+                  onCheckedChange={(checked) => updateHousingAllocation({ [key]: !!checked })}
+                />
+                <label htmlFor={key} className="text-sm cursor-pointer">{label}</label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="keys-issued">Number of Keys Issued</Label>
+          <Input
+            id="keys-issued"
+            type="number"
+            data-testid="input-keys-issued"
+            value={housingAllocation.keysIssued || ''}
+            onChange={(e) => updateHousingAllocation({ keysIssued: parseInt(e.target.value) || 0 })}
+            placeholder="0"
+          />
+        </div>
+
+        <div className="space-y-3">
+          <Label>Room Condition Assessment</Label>
+          <div className="space-y-2">
+            {[
+              { key: 'isCleanAndTidy', label: 'Room is clean and tidy' },
+              { key: 'floorWallGoodCondition', label: 'Floor and wall coverings in good condition' },
+              { key: 'electricsWorking', label: 'All electrical fittings working' },
+              { key: 'structureGoodCondition', label: 'Structure in good condition (no damage)' },
+            ].map(({ key, label }) => (
+              <div key={key} className="flex items-center space-x-2">
+                <Checkbox
+                  id={key}
+                  data-testid={`checkbox-${key}`}
+                  checked={housingAllocation[key as keyof typeof housingAllocation] as boolean}
+                  onCheckedChange={(checked) => updateHousingAllocation({ [key]: !!checked })}
+                />
+                <label htmlFor={key} className="text-sm cursor-pointer">{label}</label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="inventory-notes">Inventory Notes</Label>
+          <Textarea
+            id="inventory-notes"
+            data-testid="textarea-inventory-notes"
+            value={housingAllocation.inventoryNotes || ''}
+            onChange={(e) => updateHousingAllocation({ inventoryNotes: e.target.value })}
+            placeholder="Any damage, missing items, or other observations..."
+            rows={3}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderStep8 = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Support Framework</CardTitle>
+        <CardDescription>Support needs, goals, and emergency contacts</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="support-needs">Support Needs Assessment</Label>
+          <Textarea
+            id="support-needs"
+            data-testid="textarea-support-needs"
+            value={supportFramework.supportNeeds || ''}
+            onChange={(e) => updateSupportFramework({ supportNeeds: e.target.value })}
+            placeholder="What areas does the resident need support with? (e.g., budgeting, life skills, mental health, substance recovery)"
+            rows={4}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="support-goals">Support Goals</Label>
+          <Textarea
+            id="support-goals"
+            data-testid="textarea-support-goals"
+            value={supportFramework.supportGoals || ''}
+            onChange={(e) => updateSupportFramework({ supportGoals: e.target.value })}
+            placeholder="What are the resident's goals? (e.g., secure employment, maintain tenancy, reduce substance use)"
+            rows={4}
+          />
+        </div>
+
+        <div className="border-t pt-4">
+          <h3 className="font-semibold mb-4">Emergency Contacts</h3>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="next-of-kin-name">Next of Kin / Emergency Contact Name *</Label>
+              <Input
+                id="next-of-kin-name"
+                data-testid="input-next-of-kin-name"
+                value={supportFramework.nextOfKinName || ''}
+                onChange={(e) => updateSupportFramework({ nextOfKinName: e.target.value })}
+                placeholder="Full name"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="next-of-kin-relationship">Relationship</Label>
+                <Input
+                  id="next-of-kin-relationship"
+                  data-testid="input-next-of-kin-relationship"
+                  value={supportFramework.nextOfKinRelationship || ''}
+                  onChange={(e) => updateSupportFramework({ nextOfKinRelationship: e.target.value })}
+                  placeholder="e.g., Mother, Partner, Friend"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="next-of-kin-phone">Phone Number</Label>
+                <Input
+                  id="next-of-kin-phone"
+                  data-testid="input-next-of-kin-phone"
+                  value={supportFramework.nextOfKinPhone || ''}
+                  onChange={(e) => updateSupportFramework({ nextOfKinPhone: e.target.value })}
+                  placeholder="Phone number"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="next-of-kin-address">Address</Label>
+              <Textarea
+                id="next-of-kin-address"
+                data-testid="textarea-next-of-kin-address"
+                value={supportFramework.nextOfKinAddress || ''}
+                onChange={(e) => updateSupportFramework({ nextOfKinAddress: e.target.value })}
+                placeholder="Full address"
+                rows={2}
+              />
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderStep9 = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Legal Agreements & Consents</CardTitle>
+        <CardDescription>Review and sign all required documents</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <p className="text-sm text-muted-foreground">
+          Please review each document and provide your digital signature where required.
+        </p>
+
+        {[
+          { key: 'licenceAgreementSigned', sigKey: 'licenceAgreementSignature', label: 'Licence Agreement' },
+          { key: 'supportAgreementSigned', sigKey: 'supportAgreementSignature', label: 'Support Agreement' },
+          { key: 'confidentialityWaiverSigned', sigKey: 'confidentialityWaiverSignature', label: 'Confidentiality Waiver' },
+          { key: 'fireEvacuationAcknowledged', sigKey: 'fireEvacuationSignature', label: 'Fire Evacuation Procedure' },
+          { key: 'serviceChargeAgreementSigned', sigKey: 'serviceChargeAgreementSignature', label: 'Service Charge Agreement' },
+          { key: 'authorizationFormSigned', sigKey: 'authorizationFormSignature', label: 'Benefits Authorization Form' },
+          { key: 'supportNeedsAssessmentSigned', sigKey: 'supportNeedsAssessmentSignature', label: 'Support Needs Assessment' },
+          { key: 'missingPersonFormSigned', sigKey: 'missingPersonFormSignature', label: 'Missing Person Protocol' },
+        ].map(({ key, sigKey, label }) => (
+          <div key={key} className="border p-4 rounded-md space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id={key}
+                  data-testid={`checkbox-${key}`}
+                  checked={legalConsents[key as keyof typeof legalConsents] as boolean}
+                  onCheckedChange={(checked) => updateLegalConsents({ [key]: !!checked })}
+                />
+                <label htmlFor={key} className="font-medium cursor-pointer">{label}</label>
+              </div>
+              <Button variant="outline" size="sm" data-testid={`button-view-${key}`}>
+                View Document
+              </Button>
+            </div>
+
+            {(legalConsents[key as keyof typeof legalConsents] as boolean) && (
+              <div className="ml-6 space-y-2">
+                <Label htmlFor={sigKey}>Digital Signature *</Label>
+                <Input
+                  id={sigKey}
+                  data-testid={`input-${sigKey}`}
+                  value={(legalConsents[sigKey as keyof typeof legalConsents] as string) || ''}
+                  onChange={(e) => updateLegalConsents({ [sigKey]: e.target.value })}
+                  placeholder="Type your full name to sign"
+                />
+                <p className="text-xs text-muted-foreground">
+                  By typing your name, you confirm you have read and agree to this document
+                </p>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {financial.hasNilIncome && (
+          <div className="border p-4 rounded-md space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="nil-income-form"
+                  data-testid="checkbox-nil-income-form"
+                  checked={legalConsents.nilIncomeFormSigned}
+                  onCheckedChange={(checked) => updateLegalConsents({ nilIncomeFormSigned: !!checked })}
+                />
+                <label htmlFor="nil-income-form" className="font-medium cursor-pointer">
+                  Nil Income Declaration
+                </label>
+              </div>
+              <Button variant="outline" size="sm" data-testid="button-view-nil-income">
+                View Document
+              </Button>
+            </div>
+
+            {legalConsents.nilIncomeFormSigned && (
+              <div className="ml-6 space-y-2">
+                <Label htmlFor="nil-income-signature">Digital Signature *</Label>
+                <Input
+                  id="nil-income-signature"
+                  data-testid="input-nil-income-signature"
+                  value={legalConsents.nilIncomeFormSignature || ''}
+                  onChange={(e) => updateLegalConsents({ nilIncomeFormSignature: e.target.value })}
+                  placeholder="Type your full name to sign"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="border p-4 rounded-md space-y-3">
+          <h3 className="font-semibold">Photo ID Consent</h3>
+          <div className="space-y-3">
+            <Select
+              value={legalConsents.photoIdConsentType || ''}
+              onValueChange={(value) => updateLegalConsents({ 
+                photoIdConsentType: value,
+                photoIdConsentGiven: value !== 'DECLINE'
+              })}
+            >
+              <SelectTrigger data-testid="select-photo-id-consent">
+                <SelectValue placeholder="Select option" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PROVIDED_ID">I have provided photo ID</SelectItem>
+                <SelectItem value="PERMISSION_TO_PHOTOGRAPH">Permission to photograph for ID</SelectItem>
+                <SelectItem value="DECLINE">Decline to provide photo ID</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {legalConsents.photoIdConsentType && legalConsents.photoIdConsentType !== 'DECLINE' && (
+              <div className="space-y-2">
+                <Label htmlFor="photo-id-signature">Digital Signature *</Label>
+                <Input
+                  id="photo-id-signature"
+                  data-testid="input-photo-id-signature"
+                  value={legalConsents.photoIdConsentSignature || ''}
+                  onChange={(e) => updateLegalConsents({ photoIdConsentSignature: e.target.value })}
+                  placeholder="Type your full name"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderStep10 = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Review & Submit</CardTitle>
+        <CardDescription>Review all information before final submission</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="bg-muted p-4 rounded-md">
+          <p className="text-sm font-medium mb-2">Pre-Intake Information</p>
+          <p className="text-sm text-muted-foreground">
+            Referral: {preIntake.referralSource || 'Not provided'}
+          </p>
+        </div>
+
+        <div className="bg-muted p-4 rounded-md">
+          <p className="text-sm font-medium mb-2">Personal Identity</p>
+          <p className="text-sm text-muted-foreground">
+            Title: {personalIdentity.title || 'Not provided'} | 
+            Nationality: {personalIdentity.nationality || 'Not provided'} |
+            Languages: {personalIdentity.languagesSpoken || 'Not provided'}
+          </p>
+        </div>
+
+        <div className="bg-muted p-4 rounded-md">
+          <p className="text-sm font-medium mb-2">Diversity & Communication</p>
+          <p className="text-sm text-muted-foreground">
+            Ethnicity: {diversity.ethnicity || 'Not disclosed'} | 
+            Communication Needs: {diversity.communicationNeeds.length > 0 ? diversity.communicationNeeds.join(', ') : 'None'}
+          </p>
+        </div>
+
+        <div className="bg-muted p-4 rounded-md">
+          <p className="text-sm font-medium mb-2">Health & Medical</p>
+          <p className="text-sm text-muted-foreground">
+            GP: {healthMedical.gpName || 'Not provided'} | 
+            CPN: {healthMedical.cpnName || 'Not applicable'}
+          </p>
+        </div>
+
+        <div className="bg-muted p-4 rounded-md">
+          <p className="text-sm font-medium mb-2">Risk & Safeguarding</p>
+          <p className="text-sm text-muted-foreground">
+            Criminal Record: {riskSafeguarding.hasCriminalRecord ? 'Yes' : 'No'} | 
+            Substance Use: {riskSafeguarding.substanceUse ? 'Yes' : 'No'}
+          </p>
+        </div>
+
+        <div className="bg-muted p-4 rounded-md">
+          <p className="text-sm font-medium mb-2">Financial Status</p>
+          <p className="text-sm text-muted-foreground">
+            Income Source: {financial.incomeSource || 'Not provided'} | 
+            Nil Income: {financial.hasNilIncome ? 'Yes' : 'No'}
+          </p>
+        </div>
+
+        <div className="bg-muted p-4 rounded-md">
+          <p className="text-sm font-medium mb-2">Housing Allocation</p>
+          <p className="text-sm text-muted-foreground">
+            Room: {housingAllocation.roomId || 'Not assigned'} | 
+            Start Date: {housingAllocation.startDate || 'Not set'}
+          </p>
+        </div>
+
+        <div className="bg-muted p-4 rounded-md">
+          <p className="text-sm font-medium mb-2">Support Framework</p>
+          <p className="text-sm text-muted-foreground">
+            Emergency Contact: {supportFramework.nextOfKinName || 'Not provided'}
+          </p>
+        </div>
+
+        <div className="bg-muted p-4 rounded-md">
+          <p className="text-sm font-medium mb-2">Legal Agreements</p>
+          <p className="text-sm text-muted-foreground">
+            Signed Documents: {[
+              legalConsents.licenceAgreementSigned && 'Licence',
+              legalConsents.supportAgreementSigned && 'Support',
+              legalConsents.confidentialityWaiverSigned && 'Confidentiality',
+              legalConsents.fireEvacuationAcknowledged && 'Fire Safety',
+            ].filter(Boolean).length} of 8
+          </p>
+        </div>
+
+        <div className="border-t pt-4">
+          <p className="text-sm font-medium mb-2">Ready to Submit</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Please ensure all information is correct. Once submitted, the resident will be created in the system
+            and all supporting documents will be generated.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   const renderStep = () => {
     switch (step) {
       case 1: return renderStep1();
@@ -1546,10 +1979,10 @@ export default function TenantOnboardingPage() {
       case 4: return renderStep4();
       case 5: return renderStep5();
       case 6: return renderStep6();
-      case 7: return <div>Step 7: Housing Allocation (Coming Soon)</div>;
-      case 8: return <div>Step 8: Support Framework (Coming Soon)</div>;
-      case 9: return <div>Step 9: Legal Agreements (Coming Soon)</div>;
-      case 10: return <div>Step 10: Review & Generate (Coming Soon)</div>;
+      case 7: return renderStep7();
+      case 8: return renderStep8();
+      case 9: return renderStep9();
+      case 10: return renderStep10();
       default: return null;
     }
   };
