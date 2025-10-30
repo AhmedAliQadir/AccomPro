@@ -256,6 +256,7 @@ export default function TenantOnboardingV2() {
   const [showAgeWarning, setShowAgeWarning] = useState(false);
   const [preIntakeData, setPreIntakeData] = useState<PreIntakeData>({
     referralSource: '',
+    referralDate: '',
     isEmergencyAdmission: false,
     eligibilityConfirmed: false,
   });
