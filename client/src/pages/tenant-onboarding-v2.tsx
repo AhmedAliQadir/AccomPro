@@ -2870,34 +2870,15 @@ export default function TenantOnboardingV2() {
   return (
     <div className="container mx-auto py-6 max-w-5xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Tenant Onboarding (Proper Implementation)</h1>
+        <h1 className="text-3xl font-bold" data-testid="text-page-title">New Resident Onboarding</h1>
         <p className="text-muted-foreground">
-          Reference pattern: Steps 1-2 properly implemented with all required features
+          Complete all steps to register a new resident
         </p>
       </div>
 
       {renderProgressBar()}
 
       <div className="mb-6">{renderStep()}</div>
-
-      <div className="mt-6 p-4 bg-muted rounded-md">
-        <h3 className="font-semibold mb-2 flex items-center">
-          <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-          Features Implemented in Steps 1-2:
-        </h3>
-        <ul className="text-sm space-y-1 ml-7">
-          <li>✓ React Hook Form integration with shadcn Form components</li>
-          <li>✓ Zod validation aligned with backend schemas</li>
-          <li>✓ TanStack Query mutations for API calls</li>
-          <li>✓ LocalStorage autosave (every 30s) with draft restoration</li>
-          <li>✓ Proper error handling with toast notifications</li>
-          <li>✓ TypeScript types aligned with backend (languagesSpoken as string)</li>
-          <li>✓ data-testid attributes for all interactive elements</li>
-          <li>✓ Form validation before submission</li>
-          <li>✓ Loading states during API calls</li>
-          <li>✓ Progress indicator showing step completion</li>
-        </ul>
-      </div>
     </div>
   );
 }
