@@ -139,7 +139,7 @@ const financialSchema = z.object({
     (val) => val === '' ? undefined : val,
     z.enum([
       'ESA', 'DLA', 'JSA', 'UNIVERSAL_CREDIT', 'HOUSING_BENEFIT', 'NIL_INCOME', 'EMPLOYMENT', 'OTHER'
-    ]).optional()
+    ], { errorMap: () => ({ message: 'Please select a valid income source from the dropdown' }) }).optional()
   ),
   benefitType: z.string().optional(),
   benefitAmount: z.preprocess(
@@ -148,7 +148,7 @@ const financialSchema = z.object({
   ),
   benefitFrequency: z.preprocess(
     (val) => val === '' ? undefined : val,
-    z.enum(['WEEKLY', 'FORTNIGHTLY', 'MONTHLY']).optional()
+    z.enum(['WEEKLY', 'FORTNIGHTLY', 'MONTHLY'], { errorMap: () => ({ message: 'Please select a valid payment frequency' }) }).optional()
   ),
   hasNilIncome: z.boolean().default(false),
   nilIncomeExplanation: z.string().optional(),
