@@ -14,6 +14,7 @@ import PropertyDetailPage from "@/pages/property-detail";
 import TenantsPage from "@/pages/tenants";
 import TenantDetailPage from "@/pages/tenant-detail";
 import TenantOnboardingPage from "@/pages/tenant-onboarding";
+import TenantOnboardingV2 from "@/pages/tenant-onboarding-v2";
 import RoomsPage from "@/pages/rooms";
 import ReportsPage from "@/pages/reports";
 import IncidentsPage from "@/pages/incidents";
@@ -38,7 +39,8 @@ function ProtectedRoutes() {
             <Route path="/" component={DashboardPage} />
             <Route path="/dashboard" component={DashboardPage} />
             <Route path="/organizations" component={OrganizationsPage} />
-            <Route path="/tenants/new" component={TenantOnboardingPage} />
+            <Route path="/tenants/new" component={TenantOnboardingV2} />
+            <Route path="/tenants/new-old" component={TenantOnboardingPage} />
             <Route path="/tenants/:id" component={TenantDetailPage} />
             <Route path="/tenants" component={TenantsPage} />
             <Route path="/properties/:id" component={PropertyDetailPage} />
