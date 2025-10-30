@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { ArrowLeft, ArrowRight, Save, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, CheckCircle, Trash2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 // ============================================================
@@ -754,6 +754,38 @@ export default function TenantOnboardingV2() {
 
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
+  };
+
+  const handleClearDraft = () => {
+    // Clear localStorage
+    localStorage.removeItem('tenantOnboardingDraft');
+    
+    // Reset all forms to defaults
+    preIntakeForm.reset();
+    personalIdentityForm.reset();
+    diversityForm.reset();
+    healthForm.reset();
+    riskAssessmentForm.reset();
+    financialForm.reset();
+    housingAllocationForm.reset();
+    supportFrameworkForm.reset();
+    legalAgreementsForm.reset();
+    
+    // Reset state
+    setStep(1);
+    setTenantId(null);
+    setPreIntakeData({
+      referralSource: '',
+      referralDate: '',
+      isEmergencyAdmission: false,
+      eligibilityConfirmed: false,
+    });
+    
+    // Show confirmation
+    toast({
+      title: 'Draft Cleared',
+      description: 'All form data has been cleared. Starting fresh from Step 1.',
+    });
   };
 
   // ============================================================
@@ -2869,11 +2901,22 @@ export default function TenantOnboardingV2() {
 
   return (
     <div className="container mx-auto py-6 max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold" data-testid="text-page-title">New Resident Onboarding</h1>
-        <p className="text-muted-foreground">
-          Complete all steps to register a new resident
-        </p>
+      <div className="mb-6 flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold" data-testid="text-page-title">New Resident Onboarding</h1>
+          <p className="text-muted-foreground">
+            Complete all steps to register a new resident
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleClearDraft}
+          data-testid="button-clear-draft"
+          className="flex items-center gap-2"
+        >
+          <Trash2 className="w-4 h-4" />
+          Clear Draft & Start Fresh
+        </Button>
       </div>
 
       {renderProgressBar()}
