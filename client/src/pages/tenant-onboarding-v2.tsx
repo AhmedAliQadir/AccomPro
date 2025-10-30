@@ -25,7 +25,9 @@ const preIntakeSchema = z.object({
   referralSource: z.string().min(1, 'Referral source is required'),
   referralDate: z.string().optional(),
   isEmergencyAdmission: z.boolean().default(false),
-  eligibilityConfirmed: z.boolean().default(false),
+  eligibilityConfirmed: z.boolean().default(false).refine((val) => val === true, {
+    message: 'You must confirm that the applicant meets eligibility criteria before proceeding',
+  }),
 });
 
 type PreIntakeData = z.infer<typeof preIntakeSchema>;
