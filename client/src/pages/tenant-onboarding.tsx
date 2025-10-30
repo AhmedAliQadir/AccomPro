@@ -643,7 +643,7 @@ export default function TenantOnboardingPage() {
       { num: 3, icon: MapPin, label: 'Diversity' },
       { num: 4, icon: Heart, label: 'Health' },
       { num: 5, icon: Shield, label: 'Risk' },
-      { num: 6, icon: Pound, label: 'Finance' },
+      { num: 6, icon: Coins, label: 'Finance' },
       { num: 7, icon: Home, label: 'Housing' },
       { num: 8, icon: Users, label: 'Support' },
       { num: 9, icon: FileCheck, label: 'Consents' },
