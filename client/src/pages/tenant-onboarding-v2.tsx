@@ -1433,10 +1433,7 @@ export default function TenantOnboardingV2() {
                 <FormItem>
                   <FormLabel>Sexual Orientation</FormLabel>
                   <Select 
-                    onValueChange={(value) => {
-                      console.log('Sexual Orientation selected:', value);
-                      field.onChange(value);
-                    }} 
+                    onValueChange={field.onChange} 
                     value={field.value === null ? undefined : field.value}
                   >
                     <SelectTrigger data-testid="select-sexual-orientation">
