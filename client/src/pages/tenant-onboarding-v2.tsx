@@ -65,27 +65,27 @@ type PersonalIdentityData = z.infer<typeof personalIdentitySchema>;
 // Step 3: Diversity & Communication (aligned with tenantProfileSchema)
 const diversitySchema = z.object({
   ethnicity: z.preprocess(
-    (val) => val === '' ? undefined : val,
+    (val) => (!val || val === '' || val === null) ? undefined : val,
     z.enum([
       'WHITE_BRITISH', 'WHITE_IRISH', 'WHITE_OTHER',
       'MIXED_WHITE_BLACK_CARIBBEAN', 'MIXED_WHITE_BLACK_AFRICAN', 'MIXED_WHITE_ASIAN', 'MIXED_OTHER',
       'ASIAN_INDIAN', 'ASIAN_PAKISTANI', 'ASIAN_BANGLADESHI', 'ASIAN_OTHER',
       'BLACK_AFRICAN', 'BLACK_CARIBBEAN', 'BLACK_OTHER',
       'CHINESE', 'OTHER', 'PREFER_NOT_TO_SAY'
-    ], { errorMap: () => ({ message: 'Please select a valid ethnicity from the dropdown' }) }).optional()
+    ]).optional()
   ),
   religion: z.preprocess(
-    (val) => val === '' ? undefined : val,
+    (val) => (!val || val === '' || val === null) ? undefined : val,
     z.enum([
       'CHRISTIAN', 'MUSLIM', 'HINDU', 'SIKH', 'JEWISH', 'BUDDHIST',
       'NO_RELIGION', 'OTHER', 'PREFER_NOT_TO_SAY'
-    ], { errorMap: () => ({ message: 'Please select a valid religion from the dropdown' }) }).optional()
+    ]).optional()
   ),
   sexualOrientation: z.preprocess(
-    (val) => val === '' ? undefined : val,
+    (val) => (!val || val === '' || val === null) ? undefined : val,
     z.enum([
       'HETEROSEXUAL', 'HOMOSEXUAL', 'LESBIAN', 'BISEXUAL', 'TRANSGENDER', 'OTHER', 'PREFER_NOT_TO_SAY'
-    ], { errorMap: () => ({ message: 'Please select a valid option from the dropdown' }) }).optional()
+    ]).optional()
   ),
   disabilities: z.string().optional(),
   communicationNeeds: z.string().optional(),
@@ -1364,11 +1364,7 @@ export default function TenantOnboardingV2() {
                   <FormItem>
                     <FormLabel>Ethnicity</FormLabel>
                     <Select 
-                      onValueChange={(value) => {
-                        if (value && value !== '') {
-                          field.onChange(value);
-                        }
-                      }} 
+                      onValueChange={field.onChange} 
                       value={field.value === null ? undefined : field.value}
                     >
                       <FormControl>
@@ -1408,11 +1404,7 @@ export default function TenantOnboardingV2() {
                   <FormItem>
                     <FormLabel>Religion</FormLabel>
                     <Select 
-                      onValueChange={(value) => {
-                        if (value && value !== '') {
-                          field.onChange(value);
-                        }
-                      }} 
+                      onValueChange={field.onChange} 
                       value={field.value === null ? undefined : field.value}
                     >
                       <FormControl>
@@ -1447,10 +1439,7 @@ export default function TenantOnboardingV2() {
                   <Select 
                     onValueChange={(value) => {
                       console.log('Sexual Orientation selected:', value);
-                      // Only update if value is not empty string
-                      if (value && value !== '') {
-                        field.onChange(value);
-                      }
+                      field.onChange(value);
                     }} 
                     value={field.value === null ? undefined : field.value}
                   >
