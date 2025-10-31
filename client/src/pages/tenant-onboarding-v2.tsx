@@ -1364,7 +1364,11 @@ export default function TenantOnboardingV2() {
                   <FormItem>
                     <FormLabel>Ethnicity</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
+                      onValueChange={(value) => {
+                        if (value && value !== '') {
+                          field.onChange(value);
+                        }
+                      }} 
                       value={field.value === null ? undefined : field.value}
                     >
                       <FormControl>
@@ -1404,7 +1408,11 @@ export default function TenantOnboardingV2() {
                   <FormItem>
                     <FormLabel>Religion</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
+                      onValueChange={(value) => {
+                        if (value && value !== '') {
+                          field.onChange(value);
+                        }
+                      }} 
                       value={field.value === null ? undefined : field.value}
                     >
                       <FormControl>
@@ -1439,7 +1447,10 @@ export default function TenantOnboardingV2() {
                   <Select 
                     onValueChange={(value) => {
                       console.log('Sexual Orientation selected:', value);
-                      field.onChange(value);
+                      // Only update if value is not empty string
+                      if (value && value !== '') {
+                        field.onChange(value);
+                      }
                     }} 
                     value={field.value === null ? undefined : field.value}
                   >
