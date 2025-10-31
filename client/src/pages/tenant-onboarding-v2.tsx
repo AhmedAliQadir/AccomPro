@@ -1363,7 +1363,10 @@ export default function TenantOnboardingV2() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ethnicity</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value === null ? undefined : field.value}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-ethnicity">
                           <SelectValue placeholder="Select ethnicity" />
@@ -1400,7 +1403,10 @@ export default function TenantOnboardingV2() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Religion</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value === null ? undefined : field.value}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-religion">
                           <SelectValue placeholder="Select religion" />
@@ -1430,7 +1436,10 @@ export default function TenantOnboardingV2() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Sexual Orientation</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value === null ? undefined : field.value}
+                  >
                     <FormControl>
                       <SelectTrigger data-testid="select-sexual-orientation">
                         <SelectValue placeholder="Select sexual orientation" />
@@ -2193,7 +2202,10 @@ export default function TenantOnboardingV2() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Primary Income Source *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value === null ? undefined : field.value}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-income-source">
                           <SelectValue placeholder="Select income source" />
@@ -2263,7 +2275,10 @@ export default function TenantOnboardingV2() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Payment Frequency</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || undefined}>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            value={field.value === null ? undefined : field.value}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-benefit-frequency">
                                 <SelectValue placeholder="Select frequency" />
