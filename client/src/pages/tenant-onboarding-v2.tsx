@@ -357,9 +357,9 @@ export default function TenantOnboardingV2() {
   const diversityForm = useForm<DiversityData>({
     resolver: zodResolver(diversitySchema),
     defaultValues: {
-      ethnicity: '' as any,
-      religion: '' as any,
-      sexualOrientation: '' as any,
+      ethnicity: undefined,
+      religion: undefined,
+      sexualOrientation: undefined,
       disabilities: '',
       communicationNeeds: '',
     },
@@ -477,10 +477,10 @@ export default function TenantOnboardingV2() {
   const financialForm = useForm<FinancialData>({
     resolver: zodResolver(financialSchema),
     defaultValues: {
-      incomeSource: '' as any,
+      incomeSource: undefined,
       benefitType: '',
       benefitAmount: undefined,
-      benefitFrequency: '' as any,
+      benefitFrequency: undefined,
       hasNilIncome: false,
       nilIncomeExplanation: '',
       councilAuthorizationAgreed: false,
@@ -810,9 +810,9 @@ export default function TenantOnboardingV2() {
     });
     
     diversityForm.reset({
-      ethnicity: '' as any,
-      religion: '' as any,
-      sexualOrientation: '' as any,
+      ethnicity: undefined,
+      religion: undefined,
+      sexualOrientation: undefined,
       disabilities: '',
       communicationNeeds: '',
     });
@@ -852,10 +852,10 @@ export default function TenantOnboardingV2() {
     });
     
     financialForm.reset({
-      incomeSource: '' as any,
+      incomeSource: undefined,
       benefitType: '',
       benefitAmount: undefined,
-      benefitFrequency: '' as any,
+      benefitFrequency: undefined,
       hasNilIncome: false,
       nilIncomeExplanation: '',
       councilAuthorizationAgreed: false,
