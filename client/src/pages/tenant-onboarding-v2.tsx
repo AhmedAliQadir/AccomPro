@@ -1367,11 +1367,9 @@ export default function TenantOnboardingV2() {
                       onValueChange={field.onChange} 
                       value={field.value === null ? undefined : field.value}
                     >
-                      <FormControl>
-                        <SelectTrigger data-testid="select-ethnicity">
-                          <SelectValue placeholder="Select ethnicity" />
-                        </SelectTrigger>
-                      </FormControl>
+                      <SelectTrigger data-testid="select-ethnicity">
+                        <SelectValue placeholder="Select ethnicity" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="WHITE_BRITISH">White British</SelectItem>
                         <SelectItem value="WHITE_IRISH">White Irish</SelectItem>
@@ -1407,11 +1405,9 @@ export default function TenantOnboardingV2() {
                       onValueChange={field.onChange} 
                       value={field.value === null ? undefined : field.value}
                     >
-                      <FormControl>
-                        <SelectTrigger data-testid="select-religion">
-                          <SelectValue placeholder="Select religion" />
-                        </SelectTrigger>
-                      </FormControl>
+                      <SelectTrigger data-testid="select-religion">
+                        <SelectValue placeholder="Select religion" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="CHRISTIAN">Christian</SelectItem>
                         <SelectItem value="MUSLIM">Muslim</SelectItem>
@@ -1443,11 +1439,9 @@ export default function TenantOnboardingV2() {
                     }} 
                     value={field.value === null ? undefined : field.value}
                   >
-                    <FormControl>
-                      <SelectTrigger data-testid="select-sexual-orientation">
-                        <SelectValue placeholder="Select sexual orientation" />
-                      </SelectTrigger>
-                    </FormControl>
+                    <SelectTrigger data-testid="select-sexual-orientation">
+                      <SelectValue placeholder="Select sexual orientation" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="HETEROSEXUAL">Heterosexual</SelectItem>
                       <SelectItem value="HOMOSEXUAL">Homosexual</SelectItem>
