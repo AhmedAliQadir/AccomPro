@@ -1432,10 +1432,7 @@ export default function TenantOnboardingV2() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Sexual Orientation</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value === null ? undefined : field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value === null ? undefined : field.value}>
                     <SelectTrigger data-testid="select-sexual-orientation">
                       <SelectValue placeholder="Select sexual orientation" />
                     </SelectTrigger>
