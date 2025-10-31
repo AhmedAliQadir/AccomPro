@@ -704,7 +704,14 @@ export default function TenantOnboardingV2() {
           personalIdentityForm.reset(draft.personalIdentity);
         }
         if (draft.diversity) {
-          diversityForm.reset(draft.diversity);
+          // Sanitize diversity data - prevent date strings in enum fields
+          const sanitizedDiversity = {
+            ...draft.diversity,
+            ethnicity: (draft.diversity.ethnicity && !draft.diversity.ethnicity.includes('-')) ? draft.diversity.ethnicity : null,
+            religion: (draft.diversity.religion && !draft.diversity.religion.includes('-')) ? draft.diversity.religion : null,
+            sexualOrientation: (draft.diversity.sexualOrientation && !draft.diversity.sexualOrientation.includes('-')) ? draft.diversity.sexualOrientation : null,
+          };
+          diversityForm.reset(sanitizedDiversity);
         }
         if (draft.health) {
           healthForm.reset(draft.health);
