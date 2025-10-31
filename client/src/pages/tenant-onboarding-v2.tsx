@@ -1456,6 +1456,7 @@ export default function TenantOnboardingV2() {
                       placeholder="Please describe any disabilities or additional needs"
                       rows={3}
                       {...field}
+                      value={typeof field.value === 'string' ? field.value : ''}
                     />
                   </FormControl>
                   <FormDescription>
@@ -1478,6 +1479,7 @@ export default function TenantOnboardingV2() {
                       placeholder="e.g., British Sign Language interpreter, large print documents, etc."
                       rows={3}
                       {...field}
+                      value={typeof field.value === 'string' ? field.value : ''}
                     />
                   </FormControl>
                   <FormDescription>
