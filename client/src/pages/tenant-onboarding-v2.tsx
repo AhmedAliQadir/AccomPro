@@ -1594,6 +1594,7 @@ export default function TenantOnboardingV2() {
                             data-testid="input-mental-health-diagnosis"
                             placeholder="e.g., Depression, Anxiety, Schizophrenia"
                             {...field}
+                            value={field.value ?? ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1653,6 +1654,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-doctor-name"
                           placeholder="Dr. Smith"
                           {...field}
+                          value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1671,6 +1673,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-gp-practice"
                           placeholder="Practice name"
                           {...field}
+                          value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1690,6 +1693,7 @@ export default function TenantOnboardingV2() {
                         data-testid="input-doctor-phone"
                         placeholder="01234 567890"
                         {...field}
+                        value={field.value ?? ''}
                       />
                     </FormControl>
                     <FormMessage />
@@ -1709,6 +1713,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-cpn-name"
                           placeholder="CPN name"
                           {...field}
+                          value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1727,6 +1732,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-cpn-phone"
                           placeholder="Phone number"
                           {...field}
+                          value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1747,6 +1753,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-psychiatrist-name"
                           placeholder="Psychiatrist name"
                           {...field}
+                          value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1765,6 +1772,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-psychiatrist-phone"
                           placeholder="Phone number"
                           {...field}
+                          value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -2102,6 +2110,7 @@ export default function TenantOnboardingV2() {
                               data-testid="input-probation-officer-name"
                               placeholder="Officer name"
                               {...field}
+                              value={field.value ?? ''}
                             />
                           </FormControl>
                           <FormMessage />
@@ -2120,6 +2129,7 @@ export default function TenantOnboardingV2() {
                               data-testid="input-probation-officer-phone"
                               placeholder="Phone number"
                               {...field}
+                              value={field.value ?? ''}
                             />
                           </FormControl>
                           <FormMessage />
