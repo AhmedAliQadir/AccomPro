@@ -1429,38 +1429,26 @@ export default function TenantOnboardingV2() {
             <FormField
               control={diversityForm.control}
               name="sexualOrientation"
-              render={({ field }) => {
-                console.log('Sexual Orientation field render - current value:', field.value);
-                return (
-                  <FormItem>
-                    <FormLabel>Sexual Orientation</FormLabel>
-                    <Select 
-                      onValueChange={(value) => {
-                        console.log('Sexual Orientation onValueChange called with:', value);
-                        console.log('Field before onChange:', field.value);
-                        field.onChange(value);
-                        console.log('Field after onChange:', field.value);
-                        console.log('Form values after onChange:', diversityForm.getValues());
-                      }} 
-                      value={field.value === null ? undefined : field.value}
-                    >
-                      <SelectTrigger data-testid="select-sexual-orientation">
-                        <SelectValue placeholder="Select sexual orientation" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="HETEROSEXUAL">Heterosexual</SelectItem>
-                        <SelectItem value="HOMOSEXUAL">Homosexual</SelectItem>
-                        <SelectItem value="LESBIAN">Lesbian</SelectItem>
-                        <SelectItem value="BISEXUAL">Bisexual</SelectItem>
-                        <SelectItem value="TRANSGENDER">Transgender</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
-                        <SelectItem value="PREFER_NOT_TO_SAY">Prefer not to say</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sexual Orientation</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value === null ? undefined : field.value}>
+                    <SelectTrigger data-testid="select-sexual-orientation">
+                      <SelectValue placeholder="Select sexual orientation" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="HETEROSEXUAL">Heterosexual</SelectItem>
+                      <SelectItem value="HOMOSEXUAL">Homosexual</SelectItem>
+                      <SelectItem value="LESBIAN">Lesbian</SelectItem>
+                      <SelectItem value="BISEXUAL">Bisexual</SelectItem>
+                      <SelectItem value="TRANSGENDER">Transgender</SelectItem>
+                      <SelectItem value="OTHER">Other</SelectItem>
+                      <SelectItem value="PREFER_NOT_TO_SAY">Prefer not to say</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
             <FormField
