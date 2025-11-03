@@ -1433,26 +1433,40 @@ export default function TenantOnboardingV2() {
             <FormField
               control={diversityForm.control}
               name="sexualOrientation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sexual Orientation</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value === null ? undefined : field.value}>
-                    <SelectTrigger data-testid="select-sexual-orientation">
-                      <SelectValue placeholder="Select sexual orientation" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="HETEROSEXUAL">Heterosexual</SelectItem>
-                      <SelectItem value="HOMOSEXUAL">Homosexual</SelectItem>
-                      <SelectItem value="LESBIAN">Lesbian</SelectItem>
-                      <SelectItem value="BISEXUAL">Bisexual</SelectItem>
-                      <SelectItem value="TRANSGENDER">Transgender</SelectItem>
-                      <SelectItem value="OTHER">Other</SelectItem>
-                      <SelectItem value="PREFER_NOT_TO_SAY">Prefer not to say</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                console.log('🔍 RENDER: Sexual Orientation field.value =', field.value);
+                return (
+                  <FormItem>
+                    <FormLabel>Sexual Orientation</FormLabel>
+                    <Select 
+                      onValueChange={(value) => {
+                        console.log('🎯 onValueChange CALLED with value:', value);
+                        console.log('🎯 field.value BEFORE onChange:', field.value);
+                        console.log('🎯 Calling field.onChange...');
+                        field.onChange(value);
+                        console.log('🎯 field.value AFTER onChange:', field.value);
+                        console.log('🎯 diversityForm.getValues():', diversityForm.getValues());
+                        console.log('🎯 diversityForm.getFieldState("sexualOrientation"):', diversityForm.getFieldState('sexualOrientation'));
+                      }}
+                      value={field.value === null ? undefined : field.value}
+                    >
+                      <SelectTrigger data-testid="select-sexual-orientation" onClick={() => console.log('🖱️ TRIGGER CLICKED')}>
+                        <SelectValue placeholder="Select sexual orientation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="HETEROSEXUAL" onClick={() => console.log('✋ HETEROSEXUAL item clicked')}>Heterosexual</SelectItem>
+                        <SelectItem value="HOMOSEXUAL" onClick={() => console.log('✋ HOMOSEXUAL item clicked')}>Homosexual</SelectItem>
+                        <SelectItem value="LESBIAN" onClick={() => console.log('✋ LESBIAN item clicked')}>Lesbian</SelectItem>
+                        <SelectItem value="BISEXUAL" onClick={() => console.log('✋ BISEXUAL item clicked')}>Bisexual</SelectItem>
+                        <SelectItem value="TRANSGENDER" onClick={() => console.log('✋ TRANSGENDER item clicked')}>Transgender</SelectItem>
+                        <SelectItem value="OTHER" onClick={() => console.log('✋ OTHER item clicked')}>Other</SelectItem>
+                        <SelectItem value="PREFER_NOT_TO_SAY" onClick={() => console.log('✋ PREFER_NOT_TO_SAY item clicked')}>Prefer not to say</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             <FormField
