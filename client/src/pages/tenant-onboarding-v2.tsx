@@ -657,12 +657,16 @@ export default function TenantOnboardingV2() {
 
   useEffect(() => {
     const saveInterval = setInterval(() => {
+      const diversityValues = diversityForm.getValues();
+      console.log('DEBUG: diversityForm.getValues() returned:', diversityValues);
+      console.log('DEBUG: sexualOrientation specifically:', diversityValues.sexualOrientation);
+      
       const draftData = {
         step,
         tenantId, // Save tenant ID
         preIntake: preIntakeForm.getValues(),
         personalIdentity: personalIdentityForm.getValues(),
-        diversity: diversityForm.getValues(),
+        diversity: diversityValues,
         health: healthForm.getValues(),
         riskAssessment: riskAssessmentForm.getValues(),
         financial: financialForm.getValues(),
