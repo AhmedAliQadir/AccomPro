@@ -1,0 +1,50 @@
+Understanding the problem
+The console message "Allow attribute will take precedence over 'allowpaymentrequest'." indicates that you are using both the allowpaymentrequest attribute and the allow attribute (Permissions Policy) on an <iframe> element. The allowpaymentrequest attribute is an older, deprecated way to control access to the Payment Request API within an iframe. The modern and recommended approach is to use the allow attribute with the payment feature. When both are present, the browser prioritizes the allow attribute, effectively ignoring allowpaymentrequest. This message serves as a heads-up that your older allowpaymentrequest setting is being overridden.
+
+How to verify
+Inspect your <iframe> elements in the HTML source code or through the Elements panel in Chrome DevTools. Look for iframes that have both allowpaymentrequest and allow attributes defined. For example:
+
+html
+
+<iframe src="some_url.html" allowpaymentrequest allow="payment 'none'"></iframe>
+Use code snippets with caution
+
+Suggested fix
+To resolve this warning and use the current standard, remove the allowpaymentrequest attribute and manage Payment Request API permissions solely through the allow attribute.
+
+Before:
+
+html
+
+<iframe src="some_url.html" allowpaymentrequest allow="payment 'src'"></iframe>
+Use code snippets with caution
+
+After:
+
+html
+
+<iframe src="some_url.html" allow="payment 'src'"></iframe>
+Use code snippets with caution
+
+Ensure the payment feature is correctly configured within the allow attribute based on your security requirements (e.g., 'src', 'self', <origin>, '*', or 'none').
+
+Summary
+The message indicates a redundant allowpaymentrequest attribute on an <iframe> when the modern allow attribute (Permissions Policy) is also present. Remove the deprecated allowpaymentrequest attribute and manage permissions exclusively via the allow attribute's payment feature.
+
+Data used to understand this message
+Use search instead
+AI tools may generate inaccurate info that doesn't represent Google's views. Data sent to Google may be seen by human reviewers to improve this feature. Open settings or learn more
+
+
+
+injected.js:27 DEBUG: diversityForm.getValues() returned: 
+{ethnicity: 'WHITE_BRITISH', religion: 'MUSLIM', sexualOrientation: null, disabilities: '', communicationNeeds: ''}
+injected.js:27 DEBUG: sexualOrientation specifically: null
+injected.js:27 Autosaved to localStorage: 
+{step: 3, tenantId: '3ba1447b-d2db-47ff-9082-21208f01bb59', preIntake: {…}, personalIdentity: {…}, diversity: {…}, …}
+injected.js:27 DEBUG: diversityForm.getValues() returned: 
+{ethnicity: 'WHITE_BRITISH', religion: 'MUSLIM', sexualOrientation: null, disabilities: '', communicationNeeds: ''}
+injected.js:27 DEBUG: sexualOrientation specifically: null
+injected.js:27 Autosaved to localStorage: 
+{step: 3, tenantId: '3ba1447b-d2db-47ff-9082-21208f01bb59', preIntake: {…}, personalIdentity: {…}, diversity: {…}, …}
+﻿
