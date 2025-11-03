@@ -787,6 +787,8 @@ export default function TenantOnboardingV2() {
         hasHydratedRef.current = true;
       } catch (e) {
         console.error('Failed to load draft:', e);
+        // Mark as hydrated even on error to prevent repeated console noise
+        hasHydratedRef.current = true;
       }
     } else {
       // No draft data found, mark as hydrated anyway to prevent checking again
