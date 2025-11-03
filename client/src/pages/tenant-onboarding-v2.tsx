@@ -682,6 +682,21 @@ export default function TenantOnboardingV2() {
     return () => clearInterval(saveInterval);
   }, [step, tenantId, preIntakeForm, personalIdentityForm, diversityForm, healthForm, riskAssessmentForm, financialForm, housingAllocationForm, supportFrameworkForm, legalAgreementsForm]);
 
+  // Helper function to normalize string fields (convert non-strings to empty strings)
+  const normalizeStringFields = <T extends Record<string, any>>(
+    data: T,
+    stringFields: (keyof T)[]
+  ): T => {
+    const normalized = { ...data };
+    for (const field of stringFields) {
+      const value = normalized[field];
+      if (typeof value !== 'string') {
+        normalized[field] = '' as any;
+      }
+    }
+    return normalized;
+  };
+
   // Load draft data on mount
   useEffect(() => {
     const draftJson = localStorage.getItem(STORAGE_KEY);
@@ -699,7 +714,7 @@ export default function TenantOnboardingV2() {
           setTenantId(draft.tenantId);
         }
         
-        // Restore form data
+        // Restore form data with normalization
         if (draft.preIntake) {
           preIntakeForm.reset(draft.preIntake);
           setPreIntakeData(draft.preIntake);
@@ -708,13 +723,38 @@ export default function TenantOnboardingV2() {
           personalIdentityForm.reset(draft.personalIdentity);
         }
         if (draft.diversity) {
-          diversityForm.reset(draft.diversity);
+          const normalized = normalizeStringFields(draft.diversity, ['disabilities', 'communicationNeeds']);
+          diversityForm.reset(normalized);
         }
         if (draft.health) {
-          healthForm.reset(draft.health);
+          const normalized = normalizeStringFields(draft.health, [
+            'mentalHealthDetails',
+            'mentalHealthDiagnosis',
+            'prescribedMedication',
+            'doctorName',
+            'doctorPhone',
+            'gpPractice',
+            'cpnName',
+            'cpnPhone',
+            'psychiatristName',
+            'psychiatristPhone',
+          ]);
+          healthForm.reset(normalized);
         }
         if (draft.riskAssessment) {
-          riskAssessmentForm.reset(draft.riskAssessment);
+          const normalized = normalizeStringFields(draft.riskAssessment, [
+            'criminalRecordDetails',
+            'drugUseDetails',
+            'alcoholDetails',
+            'suicidalThoughtsDetails',
+            'selfHarmDetails',
+            'socialWorkerDetails',
+            'probationOfficerName',
+            'probationOfficerPhone',
+            'probationDetails',
+            'riskNotes',
+          ]);
+          riskAssessmentForm.reset(normalized);
         }
         if (draft.financial) {
           financialForm.reset(draft.financial);
@@ -1594,7 +1634,7 @@ export default function TenantOnboardingV2() {
                             data-testid="input-mental-health-diagnosis"
                             placeholder="e.g., Depression, Anxiety, Schizophrenia"
                             {...field}
-                            value={field.value ?? ''}
+                            value={typeof field.value === 'string' ? field.value : ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1654,7 +1694,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-doctor-name"
                           placeholder="Dr. Smith"
                           {...field}
-                          value={field.value ?? ''}
+                          value={typeof field.value === 'string' ? field.value : ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1673,7 +1713,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-gp-practice"
                           placeholder="Practice name"
                           {...field}
-                          value={field.value ?? ''}
+                          value={typeof field.value === 'string' ? field.value : ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1693,7 +1733,7 @@ export default function TenantOnboardingV2() {
                         data-testid="input-doctor-phone"
                         placeholder="01234 567890"
                         {...field}
-                        value={field.value ?? ''}
+                        value={typeof field.value === 'string' ? field.value : ''}
                       />
                     </FormControl>
                     <FormMessage />
@@ -1713,7 +1753,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-cpn-name"
                           placeholder="CPN name"
                           {...field}
-                          value={field.value ?? ''}
+                          value={typeof field.value === 'string' ? field.value : ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1732,7 +1772,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-cpn-phone"
                           placeholder="Phone number"
                           {...field}
-                          value={field.value ?? ''}
+                          value={typeof field.value === 'string' ? field.value : ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1753,7 +1793,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-psychiatrist-name"
                           placeholder="Psychiatrist name"
                           {...field}
-                          value={field.value ?? ''}
+                          value={typeof field.value === 'string' ? field.value : ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1772,7 +1812,7 @@ export default function TenantOnboardingV2() {
                           data-testid="input-psychiatrist-phone"
                           placeholder="Phone number"
                           {...field}
-                          value={field.value ?? ''}
+                          value={typeof field.value === 'string' ? field.value : ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -2110,7 +2150,7 @@ export default function TenantOnboardingV2() {
                               data-testid="input-probation-officer-name"
                               placeholder="Officer name"
                               {...field}
-                              value={field.value ?? ''}
+                              value={typeof field.value === 'string' ? field.value : ''}
                             />
                           </FormControl>
                           <FormMessage />
@@ -2129,7 +2169,7 @@ export default function TenantOnboardingV2() {
                               data-testid="input-probation-officer-phone"
                               placeholder="Phone number"
                               {...field}
-                              value={field.value ?? ''}
+                              value={typeof field.value === 'string' ? field.value : ''}
                             />
                           </FormControl>
                           <FormMessage />
