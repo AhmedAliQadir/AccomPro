@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -697,8 +697,16 @@ export default function TenantOnboardingV2() {
     return normalized;
   };
 
-  // Load draft data on mount
+  // Ref to ensure localStorage draft is only loaded ONCE on mount
+  const hasHydratedRef = useRef(false);
+
+  // Load draft data on mount (ONLY ONCE)
   useEffect(() => {
+    // Guard: Only hydrate once to prevent form resets on every render
+    if (hasHydratedRef.current) {
+      return;
+    }
+
     const draftJson = localStorage.getItem(STORAGE_KEY);
     if (draftJson) {
       try {
@@ -755,6 +763,7 @@ export default function TenantOnboardingV2() {
             'riskNotes',
           ]);
           riskAssessmentForm.reset(normalized);
+          console.log('DEBUG: Hydrated riskAssessment from localStorage:', normalized);
         }
         if (draft.financial) {
           financialForm.reset(draft.financial);
@@ -773,9 +782,15 @@ export default function TenantOnboardingV2() {
           title: 'Draft Restored',
           description: `Restored progress from ${new Date(draft.lastSaved).toLocaleString()}`,
         });
+        
+        // Mark as hydrated to prevent repeated resets
+        hasHydratedRef.current = true;
       } catch (e) {
         console.error('Failed to load draft:', e);
       }
+    } else {
+      // No draft data found, mark as hydrated anyway to prevent checking again
+      hasHydratedRef.current = true;
     }
   }, []);
 
