@@ -708,14 +708,7 @@ export default function TenantOnboardingV2() {
           personalIdentityForm.reset(draft.personalIdentity);
         }
         if (draft.diversity) {
-          // Sanitize diversity data - prevent date strings in enum fields
-          const sanitizedDiversity = {
-            ...draft.diversity,
-            ethnicity: (draft.diversity.ethnicity && !draft.diversity.ethnicity.includes('-')) ? draft.diversity.ethnicity : null,
-            religion: (draft.diversity.religion && !draft.diversity.religion.includes('-')) ? draft.diversity.religion : null,
-            sexualOrientation: (draft.diversity.sexualOrientation && !draft.diversity.sexualOrientation.includes('-')) ? draft.diversity.sexualOrientation : null,
-          };
-          diversityForm.reset(sanitizedDiversity);
+          diversityForm.reset(draft.diversity);
         }
         if (draft.health) {
           healthForm.reset(draft.health);
@@ -1364,69 +1357,87 @@ export default function TenantOnboardingV2() {
               <FormField
                 control={diversityForm.control}
                 name="ethnicity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ethnicity</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value === null ? undefined : field.value}
-                    >
-                      <SelectTrigger data-testid="select-ethnicity">
-                        <SelectValue placeholder="Select ethnicity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="WHITE_BRITISH">White British</SelectItem>
-                        <SelectItem value="WHITE_IRISH">White Irish</SelectItem>
-                        <SelectItem value="WHITE_OTHER">White Other</SelectItem>
-                        <SelectItem value="MIXED_WHITE_BLACK_CARIBBEAN">Mixed White/Black Caribbean</SelectItem>
-                        <SelectItem value="MIXED_WHITE_BLACK_AFRICAN">Mixed White/Black African</SelectItem>
-                        <SelectItem value="MIXED_WHITE_ASIAN">Mixed White/Asian</SelectItem>
-                        <SelectItem value="MIXED_OTHER">Mixed Other</SelectItem>
-                        <SelectItem value="ASIAN_INDIAN">Asian Indian</SelectItem>
-                        <SelectItem value="ASIAN_PAKISTANI">Asian Pakistani</SelectItem>
-                        <SelectItem value="ASIAN_BANGLADESHI">Asian Bangladeshi</SelectItem>
-                        <SelectItem value="ASIAN_OTHER">Asian Other</SelectItem>
-                        <SelectItem value="BLACK_AFRICAN">Black African</SelectItem>
-                        <SelectItem value="BLACK_CARIBBEAN">Black Caribbean</SelectItem>
-                        <SelectItem value="BLACK_OTHER">Black Other</SelectItem>
-                        <SelectItem value="CHINESE">Chinese</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
-                        <SelectItem value="PREFER_NOT_TO_SAY">Prefer not to say</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  // Validate that field.value is a valid enum value, otherwise use undefined
+                  const validValues = [
+                    'WHITE_BRITISH', 'WHITE_IRISH', 'WHITE_OTHER',
+                    'MIXED_WHITE_BLACK_CARIBBEAN', 'MIXED_WHITE_BLACK_AFRICAN', 'MIXED_WHITE_ASIAN', 'MIXED_OTHER',
+                    'ASIAN_INDIAN', 'ASIAN_PAKISTANI', 'ASIAN_BANGLADESHI', 'ASIAN_OTHER',
+                    'BLACK_AFRICAN', 'BLACK_CARIBBEAN', 'BLACK_OTHER',
+                    'CHINESE', 'OTHER', 'PREFER_NOT_TO_SAY'
+                  ];
+                  const safeValue = (field.value && validValues.includes(field.value)) ? field.value : undefined;
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>Ethnicity</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={safeValue}
+                      >
+                        <SelectTrigger data-testid="select-ethnicity">
+                          <SelectValue placeholder="Select ethnicity" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="WHITE_BRITISH">White British</SelectItem>
+                          <SelectItem value="WHITE_IRISH">White Irish</SelectItem>
+                          <SelectItem value="WHITE_OTHER">White Other</SelectItem>
+                          <SelectItem value="MIXED_WHITE_BLACK_CARIBBEAN">Mixed White/Black Caribbean</SelectItem>
+                          <SelectItem value="MIXED_WHITE_BLACK_AFRICAN">Mixed White/Black African</SelectItem>
+                          <SelectItem value="MIXED_WHITE_ASIAN">Mixed White/Asian</SelectItem>
+                          <SelectItem value="MIXED_OTHER">Mixed Other</SelectItem>
+                          <SelectItem value="ASIAN_INDIAN">Asian Indian</SelectItem>
+                          <SelectItem value="ASIAN_PAKISTANI">Asian Pakistani</SelectItem>
+                          <SelectItem value="ASIAN_BANGLADESHI">Asian Bangladeshi</SelectItem>
+                          <SelectItem value="ASIAN_OTHER">Asian Other</SelectItem>
+                          <SelectItem value="BLACK_AFRICAN">Black African</SelectItem>
+                          <SelectItem value="BLACK_CARIBBEAN">Black Caribbean</SelectItem>
+                          <SelectItem value="BLACK_OTHER">Black Other</SelectItem>
+                          <SelectItem value="CHINESE">Chinese</SelectItem>
+                          <SelectItem value="OTHER">Other</SelectItem>
+                          <SelectItem value="PREFER_NOT_TO_SAY">Prefer not to say</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField
                 control={diversityForm.control}
                 name="religion"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Religion</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value === null ? undefined : field.value}
-                    >
-                      <SelectTrigger data-testid="select-religion">
-                        <SelectValue placeholder="Select religion" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CHRISTIAN">Christian</SelectItem>
-                        <SelectItem value="MUSLIM">Muslim</SelectItem>
-                        <SelectItem value="HINDU">Hindu</SelectItem>
-                        <SelectItem value="SIKH">Sikh</SelectItem>
-                        <SelectItem value="JEWISH">Jewish</SelectItem>
-                        <SelectItem value="BUDDHIST">Buddhist</SelectItem>
-                        <SelectItem value="NO_RELIGION">No religion</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
-                        <SelectItem value="PREFER_NOT_TO_SAY">Prefer not to say</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  // Validate that field.value is a valid enum value, otherwise use undefined
+                  const validValues = ['CHRISTIAN', 'MUSLIM', 'HINDU', 'SIKH', 'JEWISH', 'BUDDHIST', 'NO_RELIGION', 'OTHER', 'PREFER_NOT_TO_SAY'];
+                  const safeValue = (field.value && validValues.includes(field.value)) ? field.value : undefined;
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>Religion</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={safeValue}
+                      >
+                        <SelectTrigger data-testid="select-religion">
+                          <SelectValue placeholder="Select religion" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="CHRISTIAN">Christian</SelectItem>
+                          <SelectItem value="MUSLIM">Muslim</SelectItem>
+                          <SelectItem value="HINDU">Hindu</SelectItem>
+                          <SelectItem value="SIKH">Sikh</SelectItem>
+                          <SelectItem value="JEWISH">Jewish</SelectItem>
+                          <SelectItem value="BUDDHIST">Buddhist</SelectItem>
+                          <SelectItem value="NO_RELIGION">No religion</SelectItem>
+                          <SelectItem value="OTHER">Other</SelectItem>
+                          <SelectItem value="PREFER_NOT_TO_SAY">Prefer not to say</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
 
@@ -1434,33 +1445,28 @@ export default function TenantOnboardingV2() {
               control={diversityForm.control}
               name="sexualOrientation"
               render={({ field }) => {
-                console.log('🔍 RENDER: Sexual Orientation field.value =', field.value);
+                // Validate that field.value is a valid enum value, otherwise use undefined
+                const validValues = ['HETEROSEXUAL', 'HOMOSEXUAL', 'LESBIAN', 'BISEXUAL', 'TRANSGENDER', 'OTHER', 'PREFER_NOT_TO_SAY'];
+                const safeValue = (field.value && validValues.includes(field.value)) ? field.value : undefined;
+                
                 return (
                   <FormItem>
                     <FormLabel>Sexual Orientation</FormLabel>
                     <Select 
-                      onValueChange={(value) => {
-                        console.log('🎯 onValueChange CALLED with value:', value);
-                        console.log('🎯 field.value BEFORE onChange:', field.value);
-                        console.log('🎯 Calling field.onChange...');
-                        field.onChange(value);
-                        console.log('🎯 field.value AFTER onChange:', field.value);
-                        console.log('🎯 diversityForm.getValues():', diversityForm.getValues());
-                        console.log('🎯 diversityForm.getFieldState("sexualOrientation"):', diversityForm.getFieldState('sexualOrientation'));
-                      }}
-                      value={field.value === null ? undefined : field.value}
+                      onValueChange={field.onChange}
+                      value={safeValue}
                     >
-                      <SelectTrigger data-testid="select-sexual-orientation" onClick={() => console.log('🖱️ TRIGGER CLICKED')}>
+                      <SelectTrigger data-testid="select-sexual-orientation">
                         <SelectValue placeholder="Select sexual orientation" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="HETEROSEXUAL" onClick={() => console.log('✋ HETEROSEXUAL item clicked')}>Heterosexual</SelectItem>
-                        <SelectItem value="HOMOSEXUAL" onClick={() => console.log('✋ HOMOSEXUAL item clicked')}>Homosexual</SelectItem>
-                        <SelectItem value="LESBIAN" onClick={() => console.log('✋ LESBIAN item clicked')}>Lesbian</SelectItem>
-                        <SelectItem value="BISEXUAL" onClick={() => console.log('✋ BISEXUAL item clicked')}>Bisexual</SelectItem>
-                        <SelectItem value="TRANSGENDER" onClick={() => console.log('✋ TRANSGENDER item clicked')}>Transgender</SelectItem>
-                        <SelectItem value="OTHER" onClick={() => console.log('✋ OTHER item clicked')}>Other</SelectItem>
-                        <SelectItem value="PREFER_NOT_TO_SAY" onClick={() => console.log('✋ PREFER_NOT_TO_SAY item clicked')}>Prefer not to say</SelectItem>
+                        <SelectItem value="HETEROSEXUAL">Heterosexual</SelectItem>
+                        <SelectItem value="HOMOSEXUAL">Homosexual</SelectItem>
+                        <SelectItem value="LESBIAN">Lesbian</SelectItem>
+                        <SelectItem value="BISEXUAL">Bisexual</SelectItem>
+                        <SelectItem value="TRANSGENDER">Transgender</SelectItem>
+                        <SelectItem value="OTHER">Other</SelectItem>
+                        <SelectItem value="PREFER_NOT_TO_SAY">Prefer not to say</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
