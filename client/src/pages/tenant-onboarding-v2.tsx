@@ -1891,7 +1891,11 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-has-criminal-record"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => {
+                          console.log('DEBUG: hasCriminalRecord checkbox clicked. Previous value:', field.value, 'New value:', checked);
+                          field.onChange(checked);
+                          console.log('DEBUG: After onChange called. Current form value:', riskAssessmentForm.getValues('hasCriminalRecord'));
+                        }}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
