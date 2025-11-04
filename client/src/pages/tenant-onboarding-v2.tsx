@@ -418,6 +418,7 @@ export default function TenantOnboardingV2() {
 
   const riskAssessmentForm = useForm<RiskAssessmentData>({
     resolver: zodResolver(riskAssessmentSchema),
+    mode: 'onChange',
     defaultValues: {
       hasCriminalRecord: false,
       criminalRecordDetails: '',
@@ -1891,11 +1892,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-has-criminal-record"
                         checked={field.value}
-                        onCheckedChange={(checked) => {
-                          console.log('DEBUG: hasCriminalRecord checkbox clicked. Previous value:', field.value, 'New value:', checked);
-                          field.onChange(checked);
-                          console.log('DEBUG: After onChange called. Current form value:', riskAssessmentForm.getValues('hasCriminalRecord'));
-                        }}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -1937,7 +1934,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-has-drug-use"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -1979,7 +1976,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-has-alcohol-issue"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2021,7 +2018,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-has-suicidal-thoughts"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2063,7 +2060,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-has-self-harm-history"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2105,7 +2102,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-has-social-worker"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2147,7 +2144,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-has-probation-officer"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
