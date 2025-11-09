@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ROOM_FACILITIES } from '@shared/schema';
 
 export const createPropertySchema = z.object({
   name: z.string().min(1, 'Property name is required'),
@@ -17,6 +18,7 @@ export const createRoomSchema = z.object({
   roomNumber: z.string().min(1, 'Room number is required'),
   capacity: z.number().int().positive().default(1),
   floor: z.number().int().optional(),
+  facilities: z.array(z.enum(ROOM_FACILITIES)).default([]),
 });
 
 export const updateRoomSchema = createRoomSchema.partial().omit({ propertyId: true });

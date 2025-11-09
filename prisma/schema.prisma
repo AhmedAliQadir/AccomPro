@@ -206,6 +206,7 @@ model Room {
   roomNumber String
   capacity   Int      @default(1)
   floor      Int?
+  facilities String[] @default([])
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

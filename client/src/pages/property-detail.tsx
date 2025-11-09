@@ -10,14 +10,18 @@ import { ArrowLeft, Plus, MapPin, Home, Users, Bed } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ROOM_TYPES, ROOM_TYPE_CONFIG, ROOM_FACILITIES, ROOM_FACILITY_LABELS, type RoomType, type RoomFacility } from '@shared/schema';
 
 interface Room {
   id: string;
   roomNumber: string;
   capacity: number;
   floor?: number;
+  facilities?: string[];
   _count: {
     tenancies: number;
   };
@@ -46,8 +50,9 @@ interface Property {
 function CreateRoomDialog({ propertyId }: { propertyId: string }) {
   const [open, setOpen] = useState(false);
   const [roomNumber, setRoomNumber] = useState('');
-  const [capacity, setCapacity] = useState('1');
+  const [roomType, setRoomType] = useState<RoomType>('single');
   const [floor, setFloor] = useState('');
+  const [selectedFacilities, setSelectedFacilities] = useState<RoomFacility[]>([]);
   const { toast } = useToast();
 
   const createMutation = useMutation({
@@ -59,8 +64,9 @@ function CreateRoomDialog({ propertyId }: { propertyId: string }) {
       queryClient.invalidateQueries({ queryKey: ['/api/properties', propertyId] });
       setOpen(false);
       setRoomNumber('');
-      setCapacity('1');
+      setRoomType('single');
       setFloor('');
+      setSelectedFacilities([]);
       toast({
         title: 'Room created',
         description: 'The room has been created successfully',
@@ -75,13 +81,22 @@ function CreateRoomDialog({ propertyId }: { propertyId: string }) {
     },
   });
 
+  const handleFacilityToggle = (facility: RoomFacility) => {
+    setSelectedFacilities(prev =>
+      prev.includes(facility)
+        ? prev.filter(f => f !== facility)
+        : [...prev, facility]
+    );
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createMutation.mutate({
       propertyId,
       roomNumber,
-      capacity: parseInt(capacity, 10),
+      capacity: ROOM_TYPE_CONFIG[roomType].capacity,
       floor: floor ? parseInt(floor, 10) : undefined,
+      facilities: selectedFacilities,
     });
   };
 
@@ -112,16 +127,19 @@ function CreateRoomDialog({ propertyId }: { propertyId: string }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="capacity">Capacity</Label>
-            <Input
-              id="capacity"
-              type="number"
-              min="1"
-              value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
-              required
-              data-testid="input-room-capacity"
-            />
+            <Label htmlFor="roomType">Room Type</Label>
+            <Select value={roomType} onValueChange={(value) => setRoomType(value as RoomType)}>
+              <SelectTrigger id="roomType" data-testid="select-room-type">
+                <SelectValue placeholder="Select room type" />
+              </SelectTrigger>
+              <SelectContent>
+                {ROOM_TYPES.map((type) => (
+                  <SelectItem key={type} value={type} data-testid={`option-room-type-${type}`}>
+                    {ROOM_TYPE_CONFIG[type].label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="floor">Floor (Optional)</Label>
@@ -132,6 +150,27 @@ function CreateRoomDialog({ propertyId }: { propertyId: string }) {
               onChange={(e) => setFloor(e.target.value)}
               data-testid="input-room-floor"
             />
+          </div>
+          <div className="space-y-3">
+            <Label>Facilities</Label>
+            <div className="space-y-2">
+              {ROOM_FACILITIES.map((facility) => (
+                <div key={facility} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`facility-${facility}`}
+                    checked={selectedFacilities.includes(facility)}
+                    onCheckedChange={() => handleFacilityToggle(facility)}
+                    data-testid={`checkbox-facility-${facility}`}
+                  />
+                  <Label
+                    htmlFor={`facility-${facility}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {ROOM_FACILITY_LABELS[facility]}
+                  </Label>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="flex gap-2">
             <Button type="submit" disabled={createMutation.isPending} data-testid="button-submit-room">
