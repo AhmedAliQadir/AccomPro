@@ -320,33 +320,59 @@ export default function PropertyDetailPage() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {property.rooms.map((room) => (
-                <Card key={room.id} data-testid={`card-room-${room.id}`}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Bed className="h-5 w-5 text-primary" />
-                      Room {room.roomNumber}
-                    </CardTitle>
-                    {room.floor !== undefined && room.floor !== null && (
-                      <CardDescription>Floor {room.floor}</CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Capacity</span>
-                        <Badge variant="secondary">{room.capacity}</Badge>
+              {property.rooms.map((room) => {
+                const roomTypeEntry = Object.entries(ROOM_TYPE_CONFIG).find(
+                  ([, config]) => config.capacity === room.capacity
+                );
+                const roomTypeLabel = roomTypeEntry ? roomTypeEntry[1].label : `${room.capacity} Person`;
+
+                return (
+                  <Card key={room.id} data-testid={`card-room-${room.id}`}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Bed className="h-5 w-5 text-primary" />
+                        Room {room.roomNumber}
+                      </CardTitle>
+                      {room.floor !== undefined && room.floor !== null && (
+                        <CardDescription>Floor {room.floor}</CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Type</span>
+                          <Badge variant="secondary" data-testid={`badge-room-type-${room.id}`}>
+                            {roomTypeLabel}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Occupied</span>
+                          <Badge variant={room._count.tenancies > 0 ? 'default' : 'outline'}>
+                            {room._count.tenancies} / {room.capacity}
+                          </Badge>
+                        </div>
+                        {room.facilities && room.facilities.length > 0 && (
+                          <div className="space-y-2">
+                            <span className="text-sm text-muted-foreground">Facilities</span>
+                            <div className="flex flex-wrap gap-1">
+                              {room.facilities.map((facility) => (
+                                <Badge 
+                                  key={facility} 
+                                  variant="outline"
+                                  className="text-xs"
+                                  data-testid={`badge-facility-${facility}-${room.id}`}
+                                >
+                                  {ROOM_FACILITY_LABELS[facility as RoomFacility] || facility}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Occupied</span>
-                        <Badge variant={room._count.tenancies > 0 ? 'default' : 'outline'}>
-                          {room._count.tenancies} / {room.capacity}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </TabsContent>
