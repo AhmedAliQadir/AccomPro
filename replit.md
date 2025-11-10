@@ -42,6 +42,7 @@ Preferred communication style: Simple, everyday language.
 - **Multi-tenancy**: Achieved through `organizationId` foreign keys on all relevant models, ensuring data isolation.
 - **Room Allocation Validation**: Enhanced system prevents double-booking of occupied rooms by validating against active tenancies and room capacity.
 - **Organization Onboarding**: Atomic transaction-based creation ensures both organization and initial admin user are created together or not at all, preventing orphaned records.
+- **Database Connection Resilience**: Retry logic with automatic reconnection handles Neon serverless PostgreSQL connection timeouts (P1017 errors). Up to 3 retries with exponential backoff (100ms, 200ms, 300ms) ensures tenant onboarding operations complete successfully even when idle connections are closed.
 
 ### Data Architecture
 
