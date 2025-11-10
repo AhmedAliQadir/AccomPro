@@ -22,6 +22,37 @@ const router = Router();
 router.use(authenticate);
 router.use(createAuditLog());
 
+// Helper function to retry database operations on connection errors
+async function retryOnConnectionError<T>(
+  operation: () => Promise<T>,
+  maxRetries = 3,
+  delayMs = 100
+): Promise<T> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      // Check if it's a Prisma connection error (P1017)
+      const isConnectionError = error?.code === 'P1017' || 
+                                error?.message?.includes('connection') ||
+                                error?.message?.includes('Server has closed');
+      
+      if (isConnectionError && attempt < maxRetries) {
+        console.log(`Database connection error, retrying (${attempt}/${maxRetries})...`);
+        // Reconnect Prisma client
+        await prisma.$connect();
+        // Wait before retrying with exponential backoff
+        await new Promise(resolve => setTimeout(resolve, delayMs * attempt));
+        continue;
+      }
+      
+      throw error;
+    }
+  }
+  
+  throw new Error('Max retries exceeded');
+}
+
 async function checkTenantReadyForTenancy(tenantId: string): Promise<boolean> {
   const mandatoryDocs = await prisma.document.findMany({
     where: {
@@ -639,22 +670,26 @@ router.put('/:id/profile', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(tenant
       return res.status(401).json({ error: 'Organization context required' });
     }
     
-    const tenant = await prisma.tenant.findFirst({
-      where: { id, organizationId },
-    });
+    const tenant = await retryOnConnectionError(() => 
+      prisma.tenant.findFirst({
+        where: { id, organizationId },
+      })
+    );
     
     if (!tenant) {
       return res.status(404).json({ error: 'Tenant not found' });
     }
     
-    const profile = await prisma.tenantProfile.upsert({
-      where: { tenantId: id },
-      create: {
-        tenantId: id,
-        ...req.body,
-      },
-      update: req.body,
-    });
+    const profile = await retryOnConnectionError(() =>
+      prisma.tenantProfile.upsert({
+        where: { tenantId: id },
+        create: {
+          tenantId: id,
+          ...req.body,
+        },
+        update: req.body,
+      })
+    );
     
     req.auditLog = {
       action: 'UPDATE_TENANT_PROFILE',
@@ -680,22 +715,26 @@ router.put('/:id/risk-assessment', authorize('ADMIN', 'OPS', 'SUPPORT'), validat
       return res.status(401).json({ error: 'Organization context required' });
     }
     
-    const tenant = await prisma.tenant.findFirst({
-      where: { id, organizationId },
-    });
+    const tenant = await retryOnConnectionError(() =>
+      prisma.tenant.findFirst({
+        where: { id, organizationId },
+      })
+    );
     
     if (!tenant) {
       return res.status(404).json({ error: 'Tenant not found' });
     }
     
-    const riskAssessment = await prisma.tenantRiskAssessment.upsert({
-      where: { tenantId: id },
-      create: {
-        tenantId: id,
-        ...req.body,
-      },
-      update: req.body,
-    });
+    const riskAssessment = await retryOnConnectionError(() =>
+      prisma.tenantRiskAssessment.upsert({
+        where: { tenantId: id },
+        create: {
+          tenantId: id,
+          ...req.body,
+        },
+        update: req.body,
+      })
+    );
     
     req.auditLog = {
       action: 'UPDATE_RISK_ASSESSMENT',
@@ -721,22 +760,26 @@ router.put('/:id/support-plan', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(s
       return res.status(401).json({ error: 'Organization context required' });
     }
     
-    const tenant = await prisma.tenant.findFirst({
-      where: { id, organizationId },
-    });
+    const tenant = await retryOnConnectionError(() =>
+      prisma.tenant.findFirst({
+        where: { id, organizationId },
+      })
+    );
     
     if (!tenant) {
       return res.status(404).json({ error: 'Tenant not found' });
     }
     
-    const supportPlan = await prisma.tenantSupportPlan.upsert({
-      where: { tenantId: id },
-      create: {
-        tenantId: id,
-        ...req.body,
-      },
-      update: req.body,
-    });
+    const supportPlan = await retryOnConnectionError(() =>
+      prisma.tenantSupportPlan.upsert({
+        where: { tenantId: id },
+        create: {
+          tenantId: id,
+          ...req.body,
+        },
+        update: req.body,
+      })
+    );
     
     req.auditLog = {
       action: 'UPDATE_SUPPORT_PLAN',
@@ -762,22 +805,26 @@ router.put('/:id/finance', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(financ
       return res.status(401).json({ error: 'Organization context required' });
     }
     
-    const tenant = await prisma.tenant.findFirst({
-      where: { id, organizationId },
-    });
+    const tenant = await retryOnConnectionError(() =>
+      prisma.tenant.findFirst({
+        where: { id, organizationId },
+      })
+    );
     
     if (!tenant) {
       return res.status(404).json({ error: 'Tenant not found' });
     }
     
-    const finance = await prisma.tenantFinance.upsert({
-      where: { tenantId: id },
-      create: {
-        tenantId: id,
-        ...req.body,
-      },
-      update: req.body,
-    });
+    const finance = await retryOnConnectionError(() =>
+      prisma.tenantFinance.upsert({
+        where: { tenantId: id },
+        create: {
+          tenantId: id,
+          ...req.body,
+        },
+        update: req.body,
+      })
+    );
     
     req.auditLog = {
       action: 'UPDATE_FINANCE',
@@ -803,9 +850,11 @@ router.put('/:id/consents', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(conse
       return res.status(401).json({ error: 'Organization context required' });
     }
     
-    const tenant = await prisma.tenant.findFirst({
-      where: { id, organizationId },
-    });
+    const tenant = await retryOnConnectionError(() =>
+      prisma.tenant.findFirst({
+        where: { id, organizationId },
+      })
+    );
     
     if (!tenant) {
       return res.status(404).json({ error: 'Tenant not found' });
@@ -826,14 +875,16 @@ router.put('/:id/consents', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(conse
     if (req.body.supportNeedsAssessmentSigned) updateData.supportNeedsAssessmentSignedAt = now;
     if (req.body.photoIdConsentGiven) updateData.photoIdConsentGivenAt = now;
     
-    const consents = await prisma.tenantConsent.upsert({
-      where: { tenantId: id },
-      create: {
-        tenantId: id,
-        ...updateData,
-      },
-      update: updateData,
-    });
+    const consents = await retryOnConnectionError(() =>
+      prisma.tenantConsent.upsert({
+        where: { tenantId: id },
+        create: {
+          tenantId: id,
+          ...updateData,
+        },
+        update: updateData,
+      })
+    );
     
     req.auditLog = {
       action: 'UPDATE_CONSENTS',
@@ -859,22 +910,26 @@ router.put('/:id/missing-person-profile', authorize('ADMIN', 'OPS', 'SUPPORT'), 
       return res.status(401).json({ error: 'Organization context required' });
     }
     
-    const tenant = await prisma.tenant.findFirst({
-      where: { id, organizationId },
-    });
+    const tenant = await retryOnConnectionError(() =>
+      prisma.tenant.findFirst({
+        where: { id, organizationId },
+      })
+    );
     
     if (!tenant) {
       return res.status(404).json({ error: 'Tenant not found' });
     }
     
-    const missingPersonProfile = await prisma.missingPersonProfile.upsert({
-      where: { tenantId: id },
-      create: {
-        tenantId: id,
-        ...req.body,
-      },
-      update: req.body,
-    });
+    const missingPersonProfile = await retryOnConnectionError(() =>
+      prisma.missingPersonProfile.upsert({
+        where: { tenantId: id },
+        create: {
+          tenantId: id,
+          ...req.body,
+        },
+        update: req.body,
+      })
+    );
     
     req.auditLog = {
       action: 'UPDATE_MISSING_PERSON_PROFILE',
@@ -1036,9 +1091,11 @@ router.post('/:id/emergency-contacts', authorize('ADMIN', 'OPS', 'SUPPORT'), val
       return res.status(401).json({ error: 'Organization context required' });
     }
     
-    const tenant = await prisma.tenant.findFirst({
-      where: { id, organizationId },
-    });
+    const tenant = await retryOnConnectionError(() =>
+      prisma.tenant.findFirst({
+        where: { id, organizationId },
+      })
+    );
     
     if (!tenant) {
       return res.status(404).json({ error: 'Tenant not found' });
@@ -1046,18 +1103,22 @@ router.post('/:id/emergency-contacts', authorize('ADMIN', 'OPS', 'SUPPORT'), val
     
     // If this contact is marked as primary, unset other primary contacts
     if (req.body.isPrimary) {
-      await prisma.tenantEmergencyContact.updateMany({
-        where: { tenantId: id },
-        data: { isPrimary: false },
-      });
+      await retryOnConnectionError(() =>
+        prisma.tenantEmergencyContact.updateMany({
+          where: { tenantId: id },
+          data: { isPrimary: false },
+        })
+      );
     }
     
-    const emergencyContact = await prisma.tenantEmergencyContact.create({
-      data: {
-        tenantId: id,
-        ...req.body,
-      },
-    });
+    const emergencyContact = await retryOnConnectionError(() =>
+      prisma.tenantEmergencyContact.create({
+        data: {
+          tenantId: id,
+          ...req.body,
+        },
+      })
+    );
     
     req.auditLog = {
       action: 'CREATE_EMERGENCY_CONTACT',
@@ -1082,21 +1143,25 @@ router.get('/:id/emergency-contacts', async (req: AuthRequest, res) => {
       return res.status(401).json({ error: 'Organization context required' });
     }
     
-    const tenant = await prisma.tenant.findFirst({
-      where: { id, organizationId },
-    });
+    const tenant = await retryOnConnectionError(() =>
+      prisma.tenant.findFirst({
+        where: { id, organizationId },
+      })
+    );
     
     if (!tenant) {
       return res.status(404).json({ error: 'Tenant not found' });
     }
     
-    const emergencyContacts = await prisma.tenantEmergencyContact.findMany({
-      where: { tenantId: id },
-      orderBy: [
-        { isPrimary: 'desc' },
-        { createdAt: 'asc' },
-      ],
-    });
+    const emergencyContacts = await retryOnConnectionError(() =>
+      prisma.tenantEmergencyContact.findMany({
+        where: { tenantId: id },
+        orderBy: [
+          { isPrimary: 'desc' },
+          { createdAt: 'asc' },
+        ],
+      })
+    );
     
     res.json({ emergencyContacts });
   } catch (error) {
