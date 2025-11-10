@@ -141,3 +141,42 @@ Platform Admins have comprehensive organization management capabilities:
 - All organization management endpoints protected by `authorizePlatformAdmin` middleware
 - Only users with `isPlatformAdmin: true` database flag can access
 - Prevents unauthorized cross-organization access
+
+## Resident Onboarding Features
+
+### 10-Step Onboarding Wizard
+Organizations can onboard new residents through a comprehensive multi-step wizard capturing 80+ data points across:
+- Pre-Intake screening and referral information
+- Personal Identity and diversity information
+- Benefits & Finance details
+- Property Allocation and room assignment
+- Risk & Safeguarding assessments
+- Health & Support needs
+- Legal Consents and digital signatures
+- Emergency Planning and contacts
+
+**Key Features:**
+- Autosave functionality preserves progress in localStorage
+- Zod validation ensures data quality at each step
+- react-hook-form integration for performant form handling
+- Digital signature capture for regulatory compliance
+- Real-time field validation with helpful error messages
+
+### Age Validation Enhancement
+**Latest Update (November 10, 2025):** Enhanced age verification for tenant eligibility compliance.
+
+**Purpose:** Ensures compliance with UK supported housing regulations requiring tenants to be 18 or older for room allocation.
+
+**Implementation:**
+- **Automatic Age Calculation**: System calculates age from date of birth input in real-time
+- **Warning Dialog**: Appears immediately when user enters a DOB resulting in age < 18
+- **Clear Messaging**: Dialog states "Tenants under 18 are not eligible for room allocation in supported housing"
+- **Verification Prompt**: Asks user to "verify the date of birth is correct before proceeding with the onboarding process"
+- **Soft Validation**: Informative warning that allows user to acknowledge and proceed (button: "I Understand") rather than blocking submission
+- **UX Rationale**: Provides guidance while allowing flexibility for edge cases (e.g., tenants turning 18 soon, data entry for review)
+
+**Testing:**
+- End-to-end Playwright test validates warning appears for age < 18
+- Confirms no warning for age 18+
+- Verifies dialog message content and acknowledgment flow
+- Validates autosave and form progression after acknowledgment
