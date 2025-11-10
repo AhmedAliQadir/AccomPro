@@ -180,3 +180,32 @@ Organizations can onboard new residents through a comprehensive multi-step wizar
 - Confirms no warning for age 18+
 - Verifies dialog message content and acknowledgment flow
 - Validates autosave and form progression after acknowledgment
+
+### Checkbox Interaction Fix
+**Latest Update (November 10, 2025):** Fixed checkbox interaction issues in tenant onboarding form.
+
+**Problem:** All 22 checkboxes throughout the tenant onboarding wizard were not responding to user clicks, preventing users from selecting or deselecting options like Emergency Admission and Eligibility Confirmed.
+
+**Root Cause:** Checkboxes were using `onCheckedChange={field.onChange}` which directly passed Radix UI's tri-state value (`true`, `false`, or `"indeterminate"`) to react-hook-form, causing type handling issues.
+
+**Solution:** 
+Changed all checkbox handlers to explicitly convert to boolean:
+```tsx
+onCheckedChange={(checked) => field.onChange(checked === true)}
+```
+
+**Affected Components:**
+- Emergency Admission checkbox (Pre-Intake step)
+- Eligibility Confirmed checkbox (Pre-Intake step)  
+- Mental Health checkbox (Health & Support step)
+- Criminal Record checkbox (Risk Assessment step)
+- All other boolean checkboxes throughout the 10-step wizard (22 total)
+
+**Testing:**
+- End-to-end test confirms all checkboxes now toggle correctly
+- Visual state updates properly when clicked
+- Form state updates and persists correctly
+- Independent checkbox operation verified
+
+**Pattern Established:**
+This checkbox handler pattern should be used consistently for all future Radix UI checkbox implementations with react-hook-form to ensure proper boolean coercion.
