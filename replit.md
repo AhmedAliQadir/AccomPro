@@ -102,6 +102,69 @@ For Radix UI Checkbox components with react-hook-form:
 3. Include `shouldValidate: true` and `shouldDirty: true` options
 4. Always coerce to boolean: `checked === true`
 
+### Select Dropdown Fix
+**Latest Update (November 10, 2025):** Fixed Select dropdown components not updating form state.
+
+**Problem:** All 11 Select dropdowns (including Primary Income Source) throughout the tenant onboarding wizard were not updating form state when users selected options, preventing form submission and conditional field rendering.
+
+**Root Cause:** Same as checkboxes - using `field.onChange` doesn't properly update react-hook-form state for Shadcn/Radix UI Select components.
+
+**Solution:** 
+Created a shared helper function that generates proper onValueChange handlers using setValue():
+```tsx
+const createSelectHandler = <T extends Record<string, any>>(
+  form: UseFormReturn<T>,
+  fieldName: Path<T>,
+  transform?: (value: string) => any
+) => {
+  return (value: string) => {
+    const transformedValue = transform ? transform(value) : value;
+    form.setValue(fieldName, transformedValue, { shouldValidate: true, shouldDirty: true });
+  };
+};
+```
+
+**Usage:**
+```tsx
+<Select 
+  onValueChange={createSelectHandler(financialForm, 'incomeSource')}
+  value={field.value === null ? undefined : field.value}
+>
+  <SelectContent>
+    <SelectItem value="EMPLOYMENT">Employment</SelectItem>
+    <SelectItem value="UNIVERSAL_CREDIT">Universal Credit</SelectItem>
+    {/* ... more options */}
+  </SelectContent>
+</Select>
+```
+
+**Affected Components (11 Select dropdowns across all steps):**
+- Step 1 Pre-Intake: referralSource (1)
+- Step 2 Personal Identity: title, nationality, maritalStatus (3)
+- Step 3 Diversity: ethnicity, religion, sexualOrientation (3)
+- Step 6 Financial: incomeSource, benefitFrequency (2)
+- Step 7 Housing Allocation: propertyId, roomId (2)
+
+**Benefits:**
+- Reusable helper function for all Select components
+- Consistent form state management across dropdown types
+- Type-safe with TypeScript generics
+- Supports optional value transformations (e.g., string to number)
+- Proper validation and dirty tracking
+
+**Testing:**
+- End-to-end Playwright test confirms Primary Income Source dropdown works
+- Selections update form state correctly
+- Conditional fields appear/disappear based on dropdown value
+- Autosave functionality works with dropdown changes
+
+**Pattern Established:**
+For Shadcn/Radix UI Select components with react-hook-form:
+1. Use `createSelectHandler(form, 'fieldName')` instead of `field.onChange`
+2. Include optional transform function for value conversion if needed
+3. Helper automatically handles `shouldValidate: true` and `shouldDirty: true`
+4. Keep value prop normalization: `value={field.value === null ? undefined : field.value}`
+
 ## External Dependencies
 
 ### Database

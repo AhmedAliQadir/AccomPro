@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn, Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -242,6 +242,22 @@ const MARITAL_STATUS_OPTIONS = [
   'SEPARATED',
   'PREFER_NOT_TO_SAY',
 ];
+
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
+
+// Helper function to create Select onValueChange handler with setValue
+const createSelectHandler = <T extends Record<string, any>>(
+  form: UseFormReturn<T>,
+  fieldName: Path<T>,
+  transform?: (value: string) => any
+) => {
+  return (value: string) => {
+    const transformedValue = transform ? transform(value) : value;
+    form.setValue(fieldName, transformedValue, { shouldValidate: true, shouldDirty: true });
+  };
+};
 
 // ============================================================
 // MAIN COMPONENT
@@ -1017,7 +1033,7 @@ export default function TenantOnboardingV2() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Referral Source *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={createSelectHandler(preIntakeForm, 'referralSource')} value={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-referral-source">
                         <SelectValue placeholder="Select referral source" />
@@ -1132,7 +1148,7 @@ export default function TenantOnboardingV2() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Title</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={createSelectHandler(personalIdentityForm, 'title')} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-title">
                           <SelectValue placeholder="Select" />
@@ -1280,7 +1296,7 @@ export default function TenantOnboardingV2() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nationality</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={createSelectHandler(personalIdentityForm, 'nationality')} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-nationality">
                           <SelectValue placeholder="Select nationality" />
@@ -1344,7 +1360,7 @@ export default function TenantOnboardingV2() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Marital Status</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={createSelectHandler(personalIdentityForm, 'maritalStatus')} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-marital-status">
                           <SelectValue placeholder="Select status" />
@@ -1443,7 +1459,7 @@ export default function TenantOnboardingV2() {
                     <FormItem>
                       <FormLabel>Ethnicity</FormLabel>
                       <Select 
-                        onValueChange={field.onChange} 
+                        onValueChange={createSelectHandler(diversityForm, 'ethnicity')} 
                         value={safeValue}
                       >
                         <SelectTrigger data-testid="select-ethnicity">
@@ -1487,7 +1503,7 @@ export default function TenantOnboardingV2() {
                     <FormItem>
                       <FormLabel>Religion</FormLabel>
                       <Select 
-                        onValueChange={field.onChange} 
+                        onValueChange={createSelectHandler(diversityForm, 'religion')} 
                         value={safeValue}
                       >
                         <SelectTrigger data-testid="select-religion">
@@ -1524,7 +1540,7 @@ export default function TenantOnboardingV2() {
                   <FormItem>
                     <FormLabel>Sexual Orientation</FormLabel>
                     <Select 
-                      onValueChange={field.onChange}
+                      onValueChange={createSelectHandler(diversityForm, 'sexualOrientation')}
                       value={safeValue}
                     >
                       <SelectTrigger data-testid="select-sexual-orientation">
@@ -2323,7 +2339,7 @@ export default function TenantOnboardingV2() {
                   <FormItem>
                     <FormLabel>Primary Income Source *</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
+                      onValueChange={createSelectHandler(financialForm, 'incomeSource')} 
                       value={field.value === null ? undefined : field.value}
                     >
                       <FormControl>
@@ -2396,7 +2412,7 @@ export default function TenantOnboardingV2() {
                         <FormItem>
                           <FormLabel>Payment Frequency</FormLabel>
                           <Select 
-                            onValueChange={field.onChange} 
+                            onValueChange={createSelectHandler(financialForm, 'benefitFrequency')} 
                             value={field.value === null ? undefined : field.value}
                           >
                             <FormControl>
@@ -2583,7 +2599,7 @@ export default function TenantOnboardingV2() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Property *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={createSelectHandler(housingAllocationForm, 'propertyId')} value={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-property">
                         <SelectValue placeholder="Select property" />
@@ -2608,7 +2624,7 @@ export default function TenantOnboardingV2() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Room *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={!selectedPropertyId}>
+                  <Select onValueChange={createSelectHandler(housingAllocationForm, 'roomId')} value={field.value} disabled={!selectedPropertyId}>
                     <FormControl>
                       <SelectTrigger data-testid="select-room">
                         <SelectValue placeholder="Select room" />
