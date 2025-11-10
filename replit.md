@@ -168,18 +168,24 @@ Organizations can onboard new residents through a comprehensive multi-step wizar
 **Purpose:** Ensures compliance with UK supported housing regulations requiring tenants to be 18 or older for room allocation.
 
 **Implementation:**
-- **Automatic Age Calculation**: System calculates age from date of birth input in real-time
+- **Automatic Age Calculation**: System calculates age from date of birth input in real-time using local timezone parsing
 - **Warning Dialog**: Appears immediately when user enters a DOB resulting in age < 18
 - **Clear Messaging**: Dialog states "Tenants under 18 are not eligible for room allocation in supported housing"
 - **Verification Prompt**: Asks user to "verify the date of birth is correct before proceeding with the onboarding process"
 - **Soft Validation**: Informative warning that allows user to acknowledge and proceed (button: "I Understand") rather than blocking submission
 - **UX Rationale**: Provides guidance while allowing flexibility for edge cases (e.g., tenants turning 18 soon, data entry for review)
 
+**Bug Fixes:**
+- Fixed validation condition from `age > 0 && age < 18` to `age < 18` to correctly include age 0 and invalid future dates
+- Fixed date parsing to use local timezone instead of UTC to prevent off-by-one errors on exact 18th birthday dates
+- Age calculation now manually parses "YYYY-MM-DD" format to avoid timezone interpretation issues
+
 **Testing:**
-- End-to-end Playwright test validates warning appears for age < 18
-- Confirms no warning for age 18+
+- End-to-end Playwright test validates warning appears for age < 18 (including age 0)
+- Confirms no warning for age 18+ (validated with exact 18th birthday edge case)
 - Verifies dialog message content and acknowledgment flow
 - Validates autosave and form progression after acknowledgment
+- Tested edge cases: age 0 (today's date), age 17, and exact 18th birthday
 
 ### Checkbox Interaction Fix
 **Latest Update (November 10, 2025):** Fixed checkbox interaction issues in tenant onboarding form.

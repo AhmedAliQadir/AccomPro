@@ -264,13 +264,20 @@ export default function TenantOnboardingV2() {
   // Helper function to calculate age from date of birth
   const calculateAge = (dateOfBirth: string): number => {
     if (!dateOfBirth) return 0;
+    
+    // Parse date in local timezone to avoid UTC issues
+    const [year, month, day] = dateOfBirth.split('-').map(Number);
+    const birthDate = new Date(year, month - 1, day); // month is 0-indexed
     const today = new Date();
-    const birthDate = new Date(dateOfBirth);
+    
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    // If birthday hasn't occurred yet this year, subtract 1
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
+    
     return age;
   };
 
@@ -1191,7 +1198,7 @@ export default function TenantOnboardingV2() {
                         onChange={(e) => {
                           field.onChange(e);
                           const age = calculateAge(e.target.value);
-                          if (age > 0 && age < 18) {
+                          if (age < 18) {
                             setShowAgeWarning(true);
                           }
                         }}
