@@ -1056,7 +1056,7 @@ export default function TenantOnboardingV2() {
                     <Checkbox
                       data-testid="checkbox-emergency-admission"
                       checked={field.value}
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
@@ -1078,7 +1078,7 @@ export default function TenantOnboardingV2() {
                     <Checkbox
                       data-testid="checkbox-eligibility-confirmed"
                       checked={field.value}
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
@@ -1626,7 +1626,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-has-mental-health"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2411,7 +2411,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-has-nil-income"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2481,7 +2481,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-council-authorization-agreed"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2704,7 +2704,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-budget-plan"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2723,7 +2723,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-employment-support"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2742,7 +2742,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-life-skills"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2761,7 +2761,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-health-support"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2868,7 +2868,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-authorization-form"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2890,7 +2890,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-confidentiality-waiver"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2912,7 +2912,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-fire-evacuation"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2934,7 +2934,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-licence-agreement"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2956,7 +2956,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-service-charge"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -2978,7 +2978,7 @@ export default function TenantOnboardingV2() {
                       <Checkbox
                         data-testid="checkbox-support-agreement"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
