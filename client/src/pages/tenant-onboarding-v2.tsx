@@ -1059,13 +1059,11 @@ export default function TenantOnboardingV2() {
               name="isEmergencyAdmission"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      data-testid="checkbox-emergency-admission"
-                      checked={field.value}
-                      onCheckedChange={(checked) => field.onChange(checked === true)}
-                    />
-                  </FormControl>
+                  <Checkbox
+                    data-testid="checkbox-emergency-admission"
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
                   <div className="space-y-1 leading-none">
                     <FormLabel>Emergency Admission</FormLabel>
                     <FormDescription>
@@ -1081,13 +1079,11 @@ export default function TenantOnboardingV2() {
               name="eligibilityConfirmed"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      data-testid="checkbox-eligibility-confirmed"
-                      checked={field.value}
-                      onCheckedChange={(checked) => field.onChange(checked === true)}
-                    />
-                  </FormControl>
+                  <Checkbox
+                    data-testid="checkbox-eligibility-confirmed"
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
                   <div className="space-y-1 leading-none">
                     <FormLabel>Eligibility Confirmed *</FormLabel>
                     <FormDescription>
@@ -1629,13 +1625,11 @@ export default function TenantOnboardingV2() {
                 name="hasMentalHealth"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-has-mental-health"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-has-mental-health"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Has Mental Health Condition</FormLabel>
                       <FormDescription>
@@ -1895,13 +1889,14 @@ export default function TenantOnboardingV2() {
                 name="hasCriminalRecord"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-has-criminal-record"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-has-criminal-record"
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        const boolValue = checked === true;
+                        riskAssessmentForm.setValue('hasCriminalRecord', boolValue, { shouldValidate: true, shouldDirty: true });
+                      }}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Has Criminal Record</FormLabel>
                     </div>
@@ -1937,13 +1932,11 @@ export default function TenantOnboardingV2() {
                 name="hasDrugUse"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-has-drug-use"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-has-drug-use"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Has Drug Use History</FormLabel>
                     </div>
@@ -1979,13 +1972,11 @@ export default function TenantOnboardingV2() {
                 name="hasAlcoholIssue"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-has-alcohol-issue"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-has-alcohol-issue"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Has Alcohol-Related Issues</FormLabel>
                     </div>
@@ -2021,13 +2012,11 @@ export default function TenantOnboardingV2() {
                 name="hasSuicidalThoughts"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-has-suicidal-thoughts"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-has-suicidal-thoughts"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Has Suicidal Thoughts</FormLabel>
                     </div>
@@ -2063,13 +2052,11 @@ export default function TenantOnboardingV2() {
                 name="hasSelfHarmHistory"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-has-self-harm-history"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-has-self-harm-history"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Has Self-Harm History</FormLabel>
                     </div>
@@ -2105,13 +2092,11 @@ export default function TenantOnboardingV2() {
                 name="hasSocialWorker"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-has-social-worker"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-has-social-worker"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Has Allocated Social Worker</FormLabel>
                     </div>
@@ -2147,13 +2132,11 @@ export default function TenantOnboardingV2() {
                 name="hasProbationOfficer"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-has-probation-officer"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-has-probation-officer"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Has Probation Officer</FormLabel>
                     </div>
@@ -2414,13 +2397,11 @@ export default function TenantOnboardingV2() {
                 name="hasNilIncome"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-has-nil-income"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-has-nil-income"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Has Nil Income (No income at all)</FormLabel>
                       <FormDescription>
@@ -2484,13 +2465,11 @@ export default function TenantOnboardingV2() {
                 name="councilAuthorizationAgreed"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-council-authorization-agreed"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-council-authorization-agreed"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Council Tax Authorization *</FormLabel>
                       <FormDescription>
@@ -2707,13 +2686,11 @@ export default function TenantOnboardingV2() {
                 name="budgetPlanAgreed"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-budget-plan"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-budget-plan"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Budget Planning Support</FormLabel>
                     </div>
@@ -2726,13 +2703,11 @@ export default function TenantOnboardingV2() {
                 name="employmentSupport"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-employment-support"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-employment-support"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Employment Support</FormLabel>
                     </div>
@@ -2745,13 +2720,11 @@ export default function TenantOnboardingV2() {
                 name="lifeSkillsSupport"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-life-skills"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-life-skills"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Life Skills Support</FormLabel>
                     </div>
@@ -2764,13 +2737,11 @@ export default function TenantOnboardingV2() {
                 name="healthSupport"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-health-support"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-health-support"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Health & Wellbeing Support</FormLabel>
                     </div>
@@ -2871,13 +2842,11 @@ export default function TenantOnboardingV2() {
                 name="authorizationFormSigned"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-authorization-form"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-authorization-form"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Authorization Form *</FormLabel>
                       <FormDescription>
@@ -2893,13 +2862,11 @@ export default function TenantOnboardingV2() {
                 name="confidentialityWaiverSigned"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-confidentiality-waiver"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-confidentiality-waiver"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Confidentiality Waiver *</FormLabel>
                       <FormDescription>
@@ -2915,13 +2882,11 @@ export default function TenantOnboardingV2() {
                 name="fireEvacuationAcknowledged"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-fire-evacuation"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-fire-evacuation"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Fire Evacuation Procedures *</FormLabel>
                       <FormDescription>
@@ -2937,13 +2902,11 @@ export default function TenantOnboardingV2() {
                 name="licenceAgreementSigned"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-licence-agreement"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-licence-agreement"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Licence Agreement *</FormLabel>
                       <FormDescription>
@@ -2959,13 +2922,11 @@ export default function TenantOnboardingV2() {
                 name="serviceChargeAgreementSigned"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-service-charge"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-service-charge"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Service Charge Agreement *</FormLabel>
                       <FormDescription>
@@ -2981,13 +2942,11 @@ export default function TenantOnboardingV2() {
                 name="supportAgreementSigned"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                    <FormControl>
-                      <Checkbox
-                        data-testid="checkbox-support-agreement"
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                      />
-                    </FormControl>
+                    <Checkbox
+                      data-testid="checkbox-support-agreement"
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
                     <div className="space-y-1 leading-none">
                       <FormLabel>Support Agreement *</FormLabel>
                       <FormDescription>
