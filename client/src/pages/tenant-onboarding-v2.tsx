@@ -3168,13 +3168,18 @@ export default function TenantOnboardingV2() {
         <AlertDialogContent data-testid="dialog-age-warning">
           <AlertDialogHeader>
             <AlertDialogTitle>Age Verification Required</AlertDialogTitle>
-            <AlertDialogDescription>
-              Please make sure the new tenant age is over 18.
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                <strong>Tenants under 18 are not eligible for room allocation</strong> in supported housing.
+              </p>
+              <p>
+                Please verify the date of birth is correct before proceeding with the onboarding process.
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction data-testid="button-age-warning-ok">
-              OK
+              I Understand
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
