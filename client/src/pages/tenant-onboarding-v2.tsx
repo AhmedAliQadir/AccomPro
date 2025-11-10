@@ -553,7 +553,7 @@ export default function TenantOnboardingV2() {
   // Fetch properties with rooms for selection
   const { data: propertiesData } = useQuery<{ properties: any[] }>({
     queryKey: ['/api/properties'],
-    enabled: step === 7, // Only fetch when on Step 7
+    enabled: step >= 7, // Fetch when on Step 7 and beyond to support summary displays
   });
 
   const selectedPropertyId = housingAllocationForm.watch('propertyId');
@@ -795,7 +795,7 @@ export default function TenantOnboardingV2() {
         if (draft.housingAllocation) {
           housingAllocationForm.reset(draft.housingAllocation);
         }
-        if (draft.supportFramework) {
+        if (draft.supportFramework && !supportFrameworkForm.formState.isDirty) {
           supportFrameworkForm.reset(draft.supportFramework);
         }
         if (draft.legalAgreements) {
@@ -2704,15 +2704,34 @@ export default function TenantOnboardingV2() {
   // STEP 8: SUPPORT FRAMEWORK
   // ============================================================
 
-  const renderStep8 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>Support Framework</CardTitle>
-        <CardDescription>Support needs assessment and planning</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...supportFrameworkForm}>
-          <form onSubmit={supportFrameworkForm.handleSubmit(handleStep8Submit)} className="space-y-6">
+  const renderStep8 = () => {
+    // Resolve property and room names from UUIDs
+    const housingAllocationData = housingAllocationForm.getValues();
+    const selectedProperty = propertiesData?.properties?.find(p => p.id === housingAllocationData.propertyId);
+    const selectedRoom = selectedProperty?.rooms?.find(r => r.id === housingAllocationData.roomId);
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Support Framework</CardTitle>
+          <CardDescription>Support needs assessment and planning</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Housing Allocation Summary */}
+          {selectedProperty && selectedRoom && (
+            <div className="mb-6 p-4 bg-muted rounded-md" data-testid="housing-summary">
+              <h3 className="font-semibold text-sm mb-2">Housing Allocation</h3>
+              <p className="text-sm text-muted-foreground">
+                <strong>Property:</strong> {selectedProperty.name} - {selectedProperty.address}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                <strong>Room:</strong> Room {selectedRoom.roomNumber} (Floor {selectedRoom.floor || 'Ground'})
+              </p>
+            </div>
+          )}
+
+          <Form {...supportFrameworkForm}>
+            <form onSubmit={supportFrameworkForm.handleSubmit(handleStep8Submit)} className="space-y-6">
             <FormField
               control={supportFrameworkForm.control}
               name="supportNeeds"
@@ -2914,7 +2933,8 @@ export default function TenantOnboardingV2() {
         </Form>
       </CardContent>
     </Card>
-  );
+    );
+  };
 
   // ============================================================
   // STEP 9: LEGAL AGREEMENTS
