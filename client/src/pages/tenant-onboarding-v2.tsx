@@ -557,7 +557,7 @@ export default function TenantOnboardingV2() {
   });
 
   const selectedPropertyId = housingAllocationForm.watch('propertyId');
-  const availableRooms = propertiesData?.properties?.find((p: any) => p.id === selectedPropertyId)?.rooms || [];
+  const availableRooms = propertiesData?.properties?.find((p: any) => String(p.id) === String(selectedPropertyId))?.rooms || [];
 
   const createTenancyMutation = useMutation({
     mutationFn: async (data: HousingAllocationData) => {
