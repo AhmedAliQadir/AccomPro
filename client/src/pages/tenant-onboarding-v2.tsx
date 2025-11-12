@@ -270,6 +270,7 @@ export default function TenantOnboardingV2() {
   const [step, setStep] = useState(1);
   const [tenantId, setTenantId] = useState<string | null>(null); // Track created tenant
   const [showAgeWarning, setShowAgeWarning] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false); // Track hydration completion for autosave
   const [preIntakeData, setPreIntakeData] = useState<PreIntakeData>({
     referralSource: '',
     referralDate: '',
@@ -680,6 +681,11 @@ export default function TenantOnboardingV2() {
   // ============================================================
 
   useEffect(() => {
+    // Only start autosave after hydration is complete to prevent overwriting draft during validation
+    if (!isHydrated) {
+      return;
+    }
+
     const saveInterval = setInterval(() => {
       const diversityValues = diversityForm.getValues();
       console.log('DEBUG: diversityForm.getValues() returned:', diversityValues);
@@ -704,7 +710,7 @@ export default function TenantOnboardingV2() {
     }, AUTOSAVE_INTERVAL);
 
     return () => clearInterval(saveInterval);
-  }, [step, tenantId, preIntakeForm, personalIdentityForm, diversityForm, healthForm, riskAssessmentForm, financialForm, housingAllocationForm, supportFrameworkForm, legalAgreementsForm]);
+  }, [isHydrated, step, tenantId, preIntakeForm, personalIdentityForm, diversityForm, healthForm, riskAssessmentForm, financialForm, housingAllocationForm, supportFrameworkForm, legalAgreementsForm]);
 
   // Helper function to normalize string fields (convert non-strings to empty strings)
   const normalizeStringFields = <T extends Record<string, any>>(
@@ -724,7 +730,7 @@ export default function TenantOnboardingV2() {
   // Ref to ensure localStorage draft is only loaded ONCE on mount
   const hasHydratedRef = useRef(false);
 
-  // Load draft data on mount (ONLY ONCE)
+  // Load draft data on mount (ONLY ONCE) with validation
   useEffect(() => {
     // Guard: Only hydrate once to prevent form resets on every render
     if (hasHydratedRef.current) {
@@ -736,89 +742,148 @@ export default function TenantOnboardingV2() {
       try {
         const draft = JSON.parse(draftJson);
         
-        // Restore step (validate it's within range 1-10)
-        if (draft.step && draft.step >= 1 && draft.step <= 10) {
-          setStep(draft.step);
-        }
-        
-        // Restore tenant ID if present
+        // If draft has a tenant ID, validate it exists before restoring
         if (draft.tenantId) {
-          setTenantId(draft.tenantId);
+          // Validate tenant exists
+          apiRequest('GET', `/api/tenants/${draft.tenantId}`)
+            .then(response => {
+              // Check if request succeeded (tenant exists)
+              if (response.ok) {
+                return response.json();
+              } else if (response.status === 404) {
+                // Tenant not found - this is the only case where we clear draft
+                throw new Error('TENANT_NOT_FOUND');
+              } else {
+                // Other errors (401, 500, etc) - preserve draft, just don't restore yet
+                throw new Error('VALIDATION_ERROR');
+              }
+            })
+            .then(() => {
+              // Tenant exists, safe to restore draft
+              restoreDraft(draft);
+            })
+            .catch((error) => {
+              if (error.message === 'TENANT_NOT_FOUND') {
+                // Only clear draft when tenant is truly missing (404)
+                localStorage.removeItem(STORAGE_KEY);
+                toast({
+                  title: 'Draft Cleared',
+                  description: 'Previous draft data no longer valid. Starting fresh.',
+                });
+                hasHydratedRef.current = true;
+                setIsHydrated(true);
+              } else {
+                // For other errors (network, auth, server), restore draft anyway with warning
+                // This prevents autosave from overwriting the draft with blank data
+                toast({
+                  title: 'Draft Restored (Unverified)',
+                  description: 'Could not verify tenant data. Progress restored but may be outdated.',
+                  variant: 'destructive',
+                });
+                restoreDraft(draft); // This will set hasHydratedRef internally
+              }
+            });
+        } else {
+          // No tenant ID yet (Step 1 or 2), safe to restore
+          restoreDraft(draft);
+          hasHydratedRef.current = true;
+          setIsHydrated(true);
         }
-        
-        // Restore form data with normalization
-        if (draft.preIntake) {
-          preIntakeForm.reset(draft.preIntake);
-          setPreIntakeData(draft.preIntake);
-        }
-        if (draft.personalIdentity) {
-          personalIdentityForm.reset(draft.personalIdentity);
-        }
-        if (draft.diversity) {
-          const normalized = normalizeStringFields(draft.diversity, ['disabilities', 'communicationNeeds']);
-          diversityForm.reset(normalized);
-        }
-        if (draft.health) {
-          const normalized = normalizeStringFields(draft.health, [
-            'mentalHealthDetails',
-            'mentalHealthDiagnosis',
-            'prescribedMedication',
-            'doctorName',
-            'doctorPhone',
-            'gpPractice',
-            'cpnName',
-            'cpnPhone',
-            'psychiatristName',
-            'psychiatristPhone',
-          ]);
-          healthForm.reset(normalized);
-        }
-        if (draft.riskAssessment) {
-          const normalized = normalizeStringFields(draft.riskAssessment, [
-            'criminalRecordDetails',
-            'drugUseDetails',
-            'alcoholDetails',
-            'suicidalThoughtsDetails',
-            'selfHarmDetails',
-            'socialWorkerDetails',
-            'probationOfficerName',
-            'probationOfficerPhone',
-            'probationDetails',
-            'riskNotes',
-          ]);
-          riskAssessmentForm.reset(normalized);
-          console.log('DEBUG: Hydrated riskAssessment from localStorage:', normalized);
-        }
-        if (draft.financial) {
-          financialForm.reset(draft.financial);
-        }
-        if (draft.housingAllocation) {
-          housingAllocationForm.reset(draft.housingAllocation);
-        }
-        if (draft.supportFramework && !supportFrameworkForm.formState.isDirty) {
-          supportFrameworkForm.reset(draft.supportFramework);
-        }
-        if (draft.legalAgreements) {
-          legalAgreementsForm.reset(draft.legalAgreements);
-        }
-        
-        toast({
-          title: 'Draft Restored',
-          description: `Restored progress from ${new Date(draft.lastSaved).toLocaleString()}`,
-        });
-        
-        // Mark as hydrated to prevent repeated resets
-        hasHydratedRef.current = true;
       } catch (e) {
         console.error('Failed to load draft:', e);
-        // Mark as hydrated even on error to prevent repeated console noise
         hasHydratedRef.current = true;
+        setIsHydrated(true);
       }
     } else {
       // No draft data found, mark as hydrated anyway to prevent checking again
       hasHydratedRef.current = true;
+      setIsHydrated(true);
     }
   }, []);
+
+  // Helper function to restore draft data
+  const restoreDraft = (draft: any) => {
+    try {
+      // Restore step (validate it's within range 1-10)
+      if (draft.step && draft.step >= 1 && draft.step <= 10) {
+        setStep(draft.step);
+      }
+      
+      // Restore tenant ID if present
+      if (draft.tenantId) {
+        setTenantId(draft.tenantId);
+      }
+      
+      // Restore form data with normalization
+      if (draft.preIntake) {
+        preIntakeForm.reset(draft.preIntake);
+        setPreIntakeData(draft.preIntake);
+      }
+      if (draft.personalIdentity) {
+        personalIdentityForm.reset(draft.personalIdentity);
+      }
+      if (draft.diversity) {
+        const normalized = normalizeStringFields(draft.diversity, ['disabilities', 'communicationNeeds']);
+        diversityForm.reset(normalized);
+      }
+      if (draft.health) {
+        const normalized = normalizeStringFields(draft.health, [
+          'mentalHealthDetails',
+          'mentalHealthDiagnosis',
+          'prescribedMedication',
+          'doctorName',
+          'doctorPhone',
+          'gpPractice',
+          'cpnName',
+          'cpnPhone',
+          'psychiatristName',
+          'psychiatristPhone',
+        ]);
+        healthForm.reset(normalized);
+      }
+      if (draft.riskAssessment) {
+        const normalized = normalizeStringFields(draft.riskAssessment, [
+          'criminalRecordDetails',
+          'drugUseDetails',
+          'alcoholDetails',
+          'suicidalThoughtsDetails',
+          'selfHarmDetails',
+          'socialWorkerDetails',
+          'probationOfficerName',
+          'probationOfficerPhone',
+          'probationDetails',
+          'riskNotes',
+        ]);
+        riskAssessmentForm.reset(normalized);
+        console.log('DEBUG: Hydrated riskAssessment from localStorage:', normalized);
+      }
+      if (draft.financial) {
+        financialForm.reset(draft.financial);
+      }
+      if (draft.housingAllocation) {
+        housingAllocationForm.reset(draft.housingAllocation);
+      }
+      if (draft.supportFramework && !supportFrameworkForm.formState.isDirty) {
+        supportFrameworkForm.reset(draft.supportFramework);
+      }
+      if (draft.legalAgreements) {
+        legalAgreementsForm.reset(draft.legalAgreements);
+      }
+      
+      toast({
+        title: 'Draft Restored',
+        description: `Restored progress from ${new Date(draft.lastSaved).toLocaleString()}`,
+      });
+      
+      // Mark as hydrated to prevent repeated resets
+      hasHydratedRef.current = true;
+      setIsHydrated(true);
+    } catch (e) {
+      console.error('Failed to restore draft:', e);
+      hasHydratedRef.current = true;
+      setIsHydrated(true);
+    }
+  };
 
   // ============================================================
   // NAVIGATION HANDLERS
