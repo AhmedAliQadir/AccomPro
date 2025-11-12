@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { ArrowLeft, ArrowRight, Save, CheckCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, CheckCircle, Trash2, Upload, FileText, Loader2, AlertCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import {
   AlertDialog,
@@ -204,6 +204,22 @@ const legalAgreementsSchema = z.object({
 });
 
 type LegalAgreementsData = z.infer<typeof legalAgreementsSchema>;
+
+// Step 10: Document Uploads (handled separately, not via form)
+enum DocumentType {
+  PROOF_OF_ID = 'PROOF_OF_ID',
+  PROOF_OF_INCOME = 'PROOF_OF_INCOME',
+}
+
+interface UploadedDocument {
+  id: string;
+  type: DocumentType;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  uploadedAt: string;
+}
 
 // ============================================================
 // CONSTANTS
@@ -677,6 +693,158 @@ export default function TenantOnboardingV2() {
   });
 
   // ============================================================
+  // STEP 10: DOCUMENT UPLOADS
+  // ============================================================
+
+  // Track uploading state for each document type
+  const [uploadingProofOfId, setUploadingProofOfId] = useState(false);
+  const [uploadingProofOfIncome, setUploadingProofOfIncome] = useState(false);
+
+  // Fetch existing documents for this tenant
+  const { data: documentsData, refetch: refetchDocuments } = useQuery<{ documents: UploadedDocument[] }>({
+    queryKey: ['/api/documents', tenantId],
+    enabled: !!tenantId && step >= 10,
+  });
+
+  // Find uploaded documents by type
+  const proofOfIdDoc = documentsData?.documents?.find((doc) => doc.type === 'PROOF_OF_ID');
+  const proofOfIncomeDoc = documentsData?.documents?.find((doc) => doc.type === 'PROOF_OF_INCOME');
+
+  // Check if both mandatory documents are uploaded
+  const documentsComplete = !!proofOfIdDoc && !!proofOfIncomeDoc;
+
+  // Upload document mutation
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async ({ file, type }: { file: File; type: DocumentType }) => {
+      if (!tenantId) throw new Error('No tenant ID');
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+      formData.append('isMandatory', 'true');
+
+      const response = await fetch(`/api/documents/${tenantId}/upload`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Upload failed');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      const docTypeName = variables.type === DocumentType.PROOF_OF_ID ? 'Proof of ID' : 'Proof of Income';
+      toast({
+        title: 'Upload Successful',
+        description: `${docTypeName} has been uploaded successfully.`,
+      });
+      // Invalidate and refetch documents
+      queryClient.invalidateQueries({ queryKey: ['/api/documents', tenantId] });
+      refetchDocuments();
+    },
+    onError: (error: any, variables) => {
+      const docTypeName = variables.type === DocumentType.PROOF_OF_ID ? 'Proof of ID' : 'Proof of Income';
+      toast({
+        title: 'Upload Failed',
+        description: error.message || `Failed to upload ${docTypeName}`,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle file selection for Proof of ID
+  const handleProofOfIdUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: 'File Too Large',
+        description: 'File size must be under 10MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: 'Invalid File Type',
+        description: 'Only PDF, JPG, PNG, DOC, and DOCX files are allowed',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploadingProofOfId(true);
+    try {
+      await uploadDocumentMutation.mutateAsync({ file, type: DocumentType.PROOF_OF_ID });
+    } finally {
+      setUploadingProofOfId(false);
+      // Reset file input
+      e.target.value = '';
+    }
+  };
+
+  // Handle file selection for Proof of Income
+  const handleProofOfIncomeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: 'File Too Large',
+        description: 'File size must be under 10MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: 'Invalid File Type',
+        description: 'Only PDF, JPG, PNG, DOC, and DOCX files are allowed',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploadingProofOfIncome(true);
+    try {
+      await uploadDocumentMutation.mutateAsync({ file, type: DocumentType.PROOF_OF_INCOME });
+    } finally {
+      setUploadingProofOfIncome(false);
+      // Reset file input
+      e.target.value = '';
+    }
+  };
+
+  // ============================================================
   // AUTOSAVE TO LOCALSTORAGE
   // ============================================================
 
@@ -804,8 +972,8 @@ export default function TenantOnboardingV2() {
   // Helper function to restore draft data
   const restoreDraft = (draft: any) => {
     try {
-      // Restore step (validate it's within range 1-10)
-      if (draft.step && draft.step >= 1 && draft.step <= 10) {
+      // Restore step (validate it's within range 1-11)
+      if (draft.step && draft.step >= 1 && draft.step <= 11) {
         setStep(draft.step);
       }
       
@@ -926,6 +1094,20 @@ export default function TenantOnboardingV2() {
 
   const handleStep9Submit = async (data: LegalAgreementsData) => {
     await createConsentsMutation.mutateAsync(data);
+  };
+
+  const handleStep10Submit = () => {
+    // Step 10 doesn't have a form submission - documents are uploaded immediately
+    // Just validate both documents are uploaded before proceeding
+    if (!documentsComplete) {
+      toast({
+        title: 'Documents Required',
+        description: 'Please upload both Proof of ID and Proof of Income before proceeding.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setStep(11);
   };
 
   const handleBack = () => {
@@ -1069,7 +1251,7 @@ export default function TenantOnboardingV2() {
   // ============================================================
 
   const renderProgressBar = () => {
-    const totalSteps = 10;
+    const totalSteps = 11;
     const progress = (step / totalSteps) * 100;
 
     return (
@@ -2772,8 +2954,8 @@ export default function TenantOnboardingV2() {
   const renderStep8 = () => {
     // Resolve property and room names from UUIDs
     const housingAllocationData = housingAllocationForm.getValues();
-    const selectedProperty = propertiesData?.properties?.find(p => p.id === housingAllocationData.propertyId);
-    const selectedRoom = selectedProperty?.rooms?.find(r => r.id === housingAllocationData.roomId);
+    const selectedProperty = propertiesData?.properties?.find((p: any) => p.id === housingAllocationData.propertyId);
+    const selectedRoom = selectedProperty?.rooms?.find((r: any) => r.id === housingAllocationData.roomId);
 
     return (
       <Card>
@@ -3172,7 +3354,7 @@ export default function TenantOnboardingV2() {
                 Back
               </Button>
               <Button type="submit" data-testid="button-next" disabled={createConsentsMutation.isPending}>
-                {createConsentsMutation.isPending ? 'Saving...' : 'Next: Review & Submit'}
+                {createConsentsMutation.isPending ? 'Saving...' : 'Next: Document Uploads'}
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </div>
@@ -3183,10 +3365,286 @@ export default function TenantOnboardingV2() {
   );
 
   // ============================================================
-  // STEP 10: REVIEW & SUBMIT
+  // STEP 10: DOCUMENT UPLOADS
   // ============================================================
 
-  const renderStep10 = () => (
+  const renderStep10 = () => {
+    // Helper to format file size
+    const formatFileSize = (bytes: number) => {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    };
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Document Uploads</CardTitle>
+          <CardDescription>Upload required identity and income verification documents</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md p-4">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Required Documents</h4>
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  Both documents must be uploaded before you can complete onboarding.
+                  Accepted formats: PDF, JPG, PNG, DOC, DOCX (max 10MB each)
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Proof of ID Upload Panel */}
+          <div className="border rounded-md p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-lg">Proof of ID *</h3>
+                <p className="text-sm text-muted-foreground">
+                  Valid passport, driver's license, or national ID card
+                </p>
+              </div>
+              {proofOfIdDoc && (
+                <CheckCircle className="w-6 h-6 text-green-600" data-testid="status-proof-of-id-uploaded" />
+              )}
+            </div>
+
+            {proofOfIdDoc ? (
+              <div className="bg-muted rounded-md p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <FileText className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium" data-testid="text-proof-of-id-filename">{proofOfIdDoc.fileName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatFileSize(proofOfIdDoc.fileSize)} • Uploaded {new Date(proofOfIdDoc.uploadedAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Status: <span className="font-medium">{proofOfIdDoc.status}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <label htmlFor="replace-proof-of-id">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={uploadingProofOfId}
+                      onClick={() => document.getElementById('replace-proof-of-id')?.click()}
+                      data-testid="button-replace-proof-of-id"
+                    >
+                      {uploadingProofOfId ? (
+                        <>
+                          <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 w-4 h-4" />
+                          Replace Document
+                        </>
+                      )}
+                    </Button>
+                  </label>
+                  <input
+                    id="replace-proof-of-id"
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    onChange={handleProofOfIdUpload}
+                    disabled={uploadingProofOfId}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed rounded-md p-8 text-center space-y-4">
+                {uploadingProofOfId ? (
+                  <div className="space-y-3">
+                    <Loader2 className="w-12 h-12 mx-auto text-primary animate-spin" data-testid="loader-proof-of-id" />
+                    <p className="font-medium">Uploading...</p>
+                    <p className="text-sm text-muted-foreground">Please wait while your document is being uploaded</p>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
+                    <div>
+                      <label htmlFor="upload-proof-of-id">
+                        <Button
+                          type="button"
+                          variant="default"
+                          disabled={uploadingProofOfId}
+                          onClick={() => document.getElementById('upload-proof-of-id')?.click()}
+                          data-testid="button-upload-proof-of-id"
+                        >
+                          <Upload className="mr-2 w-4 h-4" />
+                          Choose File
+                        </Button>
+                      </label>
+                      <input
+                        id="upload-proof-of-id"
+                        type="file"
+                        className="hidden"
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        onChange={handleProofOfIdUpload}
+                        disabled={uploadingProofOfId}
+                      />
+                      <p className="text-sm text-muted-foreground mt-2">
+                        PDF, JPG, PNG, DOC, or DOCX (max 10MB)
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Proof of Income Upload Panel */}
+          <div className="border rounded-md p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-lg">Proof of Income *</h3>
+                <p className="text-sm text-muted-foreground">
+                  Benefit letter, payslips, or employment contract
+                </p>
+              </div>
+              {proofOfIncomeDoc && (
+                <CheckCircle className="w-6 h-6 text-green-600" data-testid="status-proof-of-income-uploaded" />
+              )}
+            </div>
+
+            {proofOfIncomeDoc ? (
+              <div className="bg-muted rounded-md p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <FileText className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium" data-testid="text-proof-of-income-filename">{proofOfIncomeDoc.fileName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatFileSize(proofOfIncomeDoc.fileSize)} • Uploaded {new Date(proofOfIncomeDoc.uploadedAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Status: <span className="font-medium">{proofOfIncomeDoc.status}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <label htmlFor="replace-proof-of-income">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={uploadingProofOfIncome}
+                      onClick={() => document.getElementById('replace-proof-of-income')?.click()}
+                      data-testid="button-replace-proof-of-income"
+                    >
+                      {uploadingProofOfIncome ? (
+                        <>
+                          <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 w-4 h-4" />
+                          Replace Document
+                        </>
+                      )}
+                    </Button>
+                  </label>
+                  <input
+                    id="replace-proof-of-income"
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    onChange={handleProofOfIncomeUpload}
+                    disabled={uploadingProofOfIncome}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed rounded-md p-8 text-center space-y-4">
+                {uploadingProofOfIncome ? (
+                  <div className="space-y-3">
+                    <Loader2 className="w-12 h-12 mx-auto text-primary animate-spin" data-testid="loader-proof-of-income" />
+                    <p className="font-medium">Uploading...</p>
+                    <p className="text-sm text-muted-foreground">Please wait while your document is being uploaded</p>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
+                    <div>
+                      <label htmlFor="upload-proof-of-income">
+                        <Button
+                          type="button"
+                          variant="default"
+                          disabled={uploadingProofOfIncome}
+                          onClick={() => document.getElementById('upload-proof-of-income')?.click()}
+                          data-testid="button-upload-proof-of-income"
+                        >
+                          <Upload className="mr-2 w-4 h-4" />
+                          Choose File
+                        </Button>
+                      </label>
+                      <input
+                        id="upload-proof-of-income"
+                        type="file"
+                        className="hidden"
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        onChange={handleProofOfIncomeUpload}
+                        disabled={uploadingProofOfIncome}
+                      />
+                      <p className="text-sm text-muted-foreground mt-2">
+                        PDF, JPG, PNG, DOC, or DOCX (max 10MB)
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-4">
+            <Button type="button" variant="outline" onClick={handleBack} data-testid="button-back">
+              <ArrowLeft className="mr-2 w-4 h-4" />
+              Back
+            </Button>
+            <Button
+              type="button"
+              onClick={handleStep10Submit}
+              disabled={!documentsComplete}
+              data-testid="button-next"
+            >
+              {documentsComplete ? 'Next: Review & Submit' : 'Upload Documents to Continue'}
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </div>
+
+          {!documentsComplete && (
+            <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-md p-4">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  {!proofOfIdDoc && !proofOfIncomeDoc && 'Please upload both Proof of ID and Proof of Income to continue.'}
+                  {!proofOfIdDoc && proofOfIncomeDoc && 'Please upload Proof of ID to continue.'}
+                  {proofOfIdDoc && !proofOfIncomeDoc && 'Please upload Proof of Income to continue.'}
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // ============================================================
+  // STEP 11: REVIEW & SUBMIT
+  // ============================================================
+
+  const renderStep11 = () => (
     <Card>
       <CardHeader>
         <CardTitle>Review & Submit</CardTitle>
@@ -3199,7 +3657,7 @@ export default function TenantOnboardingV2() {
             <h3 className="font-semibold text-lg">Onboarding Complete!</h3>
           </div>
           <p className="text-muted-foreground">
-            You have successfully completed all 9 steps of the tenant onboarding process. All information has been saved.
+            You have successfully completed all 10 steps of the tenant onboarding process. All information has been saved.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
             <div className="flex items-center space-x-2">
@@ -3237,6 +3695,10 @@ export default function TenantOnboardingV2() {
             <div className="flex items-center space-x-2">
               <CheckCircle className="w-4 h-4 text-green-600" />
               <span className="text-sm">Legal Agreements</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm">Document Uploads</span>
             </div>
           </div>
         </div>
@@ -3296,6 +3758,8 @@ export default function TenantOnboardingV2() {
         return renderStep9();
       case 10:
         return renderStep10();
+      case 11:
+        return renderStep11();
       default:
         return (
           <Card>
