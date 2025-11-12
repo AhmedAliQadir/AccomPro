@@ -72,6 +72,7 @@ router.post('/:tenantId/upload', uploadLimiter, upload.single('file'), async (re
     const document = await prisma.document.create({
       data: {
         tenantId,
+        organizationId: req.user!.organizationId,
         type,
         fileName: req.file.originalname,
         fileSize: req.file.size,
