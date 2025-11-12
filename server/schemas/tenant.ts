@@ -42,7 +42,7 @@ export const createTenancySchema = z.object({
   roomId: z.string().uuid(),
   startDate: z.string().or(z.date()).transform(val => new Date(val)),
   endDate: z.string().or(z.date()).transform(val => new Date(val)).optional(),
-  serviceChargeAmount: z.number().positive().optional(),
+  serviceChargeAmount: z.number().nonnegative().optional(),
 });
 
 export type CreateTenantInput = z.infer<typeof createTenantSchema>;

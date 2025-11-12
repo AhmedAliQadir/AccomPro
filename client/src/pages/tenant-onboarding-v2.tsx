@@ -166,7 +166,7 @@ const housingAllocationSchema = z.object({
   startDate: z.string().min(1, 'Move-in date is required'),
   serviceChargeAmount: z.preprocess(
     (val) => val === '' || val === null || val === undefined ? undefined : val,
-    z.coerce.number().positive().optional()
+    z.coerce.number().nonnegative().optional()
   ),
 });
 
