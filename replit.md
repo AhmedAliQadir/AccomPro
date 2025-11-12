@@ -32,7 +32,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Architecture
 - **Core Entities**: User, Property, Room, Tenant (Resident), Tenancy, Document, Assignment, AuditLog, Organization, Staff, Incident, Compliance, SupportNote.
-- **Data Integrity**: Zod schemas for API input validation, file upload constraints (10MB max, PDF/JPG/PNG), and document verification.
+- **Data Integrity**: Zod schemas for API input validation, file upload constraints (10MB max, PDF/JPG/PNG/DOC/DOCX), and document verification.
 
 ### Security Architecture
 - **Encryption**: Server-side AES-256-GCM encryption for files.
@@ -41,10 +41,11 @@ Preferred communication style: Simple, everyday language.
 
 ### Key Features
 - **Organization Onboarding Workflow**: Multi-step wizard for Platform Admins to create new organizations, including subscription tier selection and billing.
-- **Resident Onboarding Features**: A 10-step wizard capturing extensive data across various categories. Includes intelligent autosave with draft validation, automatic form reset on invalid drafts, Zod validation, `react-hook-form` integration, and digital signature capture.
+- **Resident Onboarding Features**: An 11-step wizard capturing extensive data across various categories. Includes intelligent autosave with draft validation, automatic form reset on invalid drafts, Zod validation, `react-hook-form` integration, digital signature capture, and mandatory document uploads (Proof of ID and Proof of Income) in Step 10.
 - **Age Validation**: Enhanced age verification (18+) with non-blocking warnings for ineligible users.
 - **Form Interaction Fixes**: Implemented robust solutions for `react-hook-form` and Radix UI components (Checkbox, Select) using `setValue()` for correct form state updates and `FormControl` for accessibility.
 - **Draft Validation & Auto-Reset System**: Intelligent system for `localStorage` drafts, validating tenant existence before restoration. Clears invalid drafts (e.g., deleted tenants) while preserving data for transient errors. Autosave starts only after hydration completes.
+- **Document Upload Integration**: Step 10 of the onboarding wizard requires mandatory uploads of Proof of ID and Proof of Income. Files are uploaded immediately upon selection (not saved to localStorage), validated for type and size (10MB max), and encrypted server-side with AES-256-GCM. Supports PDF, JPG, PNG, DOC, and DOCX formats. Users cannot proceed to final review (Step 11) until both required documents are successfully uploaded.
 
 ## External Dependencies
 
