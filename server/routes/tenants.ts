@@ -770,14 +770,24 @@ router.put('/:id/support-plan', authorize('ADMIN', 'OPS', 'SUPPORT'), validate(s
       return res.status(404).json({ error: 'Tenant not found' });
     }
     
+    // Convert nextReviewDate string to Date object if present
+    const data = { ...req.body };
+    if (data.nextReviewDate && typeof data.nextReviewDate === 'string') {
+      const parsedDate = new Date(data.nextReviewDate);
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json({ error: 'Invalid nextReviewDate format' });
+      }
+      data.nextReviewDate = parsedDate;
+    }
+    
     const supportPlan = await retryOnConnectionError(() =>
       prisma.tenantSupportPlan.upsert({
         where: { tenantId: id },
         create: {
           tenantId: id,
-          ...req.body,
+          ...data,
         },
-        update: req.body,
+        update: data,
       })
     );
     
