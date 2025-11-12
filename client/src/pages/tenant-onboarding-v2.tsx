@@ -721,7 +721,7 @@ export default function TenantOnboardingV2() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', type);
-      formData.append('isMandatory', 'true');
+      formData.append('isMandatory', 'false');
 
       const response = await fetch(`/api/documents/${tenantId}/upload`, {
         method: 'POST',
@@ -1098,15 +1098,7 @@ export default function TenantOnboardingV2() {
 
   const handleStep10Submit = () => {
     // Step 10 doesn't have a form submission - documents are uploaded immediately
-    // Just validate both documents are uploaded before proceeding
-    if (!documentsComplete) {
-      toast({
-        title: 'Documents Required',
-        description: 'Please upload both Proof of ID and Proof of Income before proceeding.',
-        variant: 'destructive',
-      });
-      return;
-    }
+    // Documents are now optional - tenants can upload later if needed
     setStep(11);
   };
 
@@ -3387,9 +3379,9 @@ export default function TenantOnboardingV2() {
             <div className="flex items-start space-x-3">
               <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
               <div>
-                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Required Documents</h4>
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Document Uploads (Optional)</h4>
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  Both documents must be uploaded before you can complete onboarding.
+                  You can upload these documents now or add them later from the tenant profile. These documents may be required before move-in.
                   Accepted formats: PDF, JPG, PNG, DOC, DOCX (max 10MB each)
                 </p>
               </div>
@@ -3400,7 +3392,7 @@ export default function TenantOnboardingV2() {
           <div className="border rounded-md p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-lg">Proof of ID *</h3>
+                <h3 className="font-semibold text-lg">Proof of ID</h3>
                 <p className="text-sm text-muted-foreground">
                   Valid passport, driver's license, or national ID card
                 </p>
@@ -3505,7 +3497,7 @@ export default function TenantOnboardingV2() {
           <div className="border rounded-md p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-lg">Proof of Income *</h3>
+                <h3 className="font-semibold text-lg">Proof of Income</h3>
                 <p className="text-sm text-muted-foreground">
                   Benefit letter, payslips, or employment contract
                 </p>
@@ -3615,26 +3607,12 @@ export default function TenantOnboardingV2() {
             <Button
               type="button"
               onClick={handleStep10Submit}
-              disabled={!documentsComplete}
               data-testid="button-next"
             >
-              {documentsComplete ? 'Next: Review & Submit' : 'Upload Documents to Continue'}
+              Next: Review & Submit
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </div>
-
-          {!documentsComplete && (
-            <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-md p-4">
-              <div className="flex items-start space-x-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
-                <p className="text-sm text-amber-800 dark:text-amber-200">
-                  {!proofOfIdDoc && !proofOfIncomeDoc && 'Please upload both Proof of ID and Proof of Income to continue.'}
-                  {!proofOfIdDoc && proofOfIncomeDoc && 'Please upload Proof of ID to continue.'}
-                  {proofOfIdDoc && !proofOfIncomeDoc && 'Please upload Proof of Income to continue.'}
-                </p>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
     );
@@ -3702,6 +3680,25 @@ export default function TenantOnboardingV2() {
             </div>
           </div>
         </div>
+
+        {/* Document Upload Status */}
+        {(!proofOfIdDoc || !proofOfIncomeDoc) && (
+          <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-md p-4">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">Missing Documents</h4>
+                <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+                  The following documents were not uploaded during onboarding. You can upload them later from the tenant profile, but they may be required before move-in:
+                </p>
+                <ul className="text-sm text-amber-800 dark:text-amber-200 list-disc list-inside space-y-1">
+                  {!proofOfIdDoc && <li>Proof of ID (passport, driver's license, or national ID card)</li>}
+                  {!proofOfIncomeDoc && <li>Proof of Income (benefit letter, payslips, or employment contract)</li>}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
 
         {tenantId && (
           <div className="p-4 bg-muted rounded-md">
