@@ -1329,7 +1329,12 @@ export default function TenantOnboardingV2() {
                     <Input
                       type="date"
                       data-testid="input-referral-date"
-                      {...field}
+                      max={new Date().toISOString().split('T')[0]}
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
                     />
                   </FormControl>
                   <FormMessage />
