@@ -2911,17 +2911,25 @@ export default function TenantOnboardingV2() {
                   <FormLabel>Service Charge Amount (£/week)</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="1000"
+                      type="text"
+                      inputMode="decimal"
                       data-testid="input-service-charge"
                       placeholder="0.00"
                       value={field.value ?? ''}
-                      onChange={(e) => field.onChange(e.target.value === '' ? undefined : e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                          field.onChange(value === '' ? undefined : value);
+                        }
+                      }}
                       onBlur={(e) => {
                         const value = e.target.value;
-                        field.onChange(value === '' ? undefined : parseFloat(value));
+                        if (value && value !== '') {
+                          const parsed = parseFloat(value);
+                          if (!isNaN(parsed)) {
+                            field.onChange(parsed);
+                          }
+                        }
                         field.onBlur();
                       }}
                       name={field.name}
