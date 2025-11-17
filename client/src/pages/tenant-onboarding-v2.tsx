@@ -859,6 +859,21 @@ export default function TenantOnboardingV2() {
       console.log('DEBUG: diversityForm.getValues() returned:', diversityValues);
       console.log('DEBUG: sexualOrientation specifically:', diversityValues.sexualOrientation);
       
+      const housingAllocationValues = housingAllocationForm.getValues();
+      console.log('DEBUG: housingAllocationForm.getValues() returned:', housingAllocationValues);
+      console.log('DEBUG: serviceChargeAmount type:', typeof housingAllocationValues.serviceChargeAmount, 'value:', housingAllocationValues.serviceChargeAmount);
+      
+      // Normalize serviceChargeAmount before saving to prevent invalid types
+      const normalizedHousingAllocation = {
+        ...housingAllocationValues,
+        serviceChargeAmount: 
+          typeof housingAllocationValues.serviceChargeAmount === 'number'
+            ? housingAllocationValues.serviceChargeAmount
+            : typeof housingAllocationValues.serviceChargeAmount === 'string' && housingAllocationValues.serviceChargeAmount !== ''
+              ? parseFloat(housingAllocationValues.serviceChargeAmount)
+              : undefined,
+      };
+      
       const draftData = {
         step,
         tenantId, // Save tenant ID
@@ -868,7 +883,7 @@ export default function TenantOnboardingV2() {
         health: healthForm.getValues(),
         riskAssessment: riskAssessmentForm.getValues(),
         financial: financialForm.getValues(),
-        housingAllocation: housingAllocationForm.getValues(),
+        housingAllocation: normalizedHousingAllocation,
         supportFramework: supportFrameworkForm.getValues(),
         legalAgreements: legalAgreementsForm.getValues(),
         lastSaved: new Date().toISOString(),
@@ -1029,7 +1044,19 @@ export default function TenantOnboardingV2() {
         financialForm.reset(draft.financial);
       }
       if (draft.housingAllocation) {
-        housingAllocationForm.reset(draft.housingAllocation);
+        // Normalize serviceChargeAmount to prevent boolean/invalid type contamination
+        const normalizedHousingAllocation = {
+          ...draft.housingAllocation,
+          serviceChargeAmount: 
+            typeof draft.housingAllocation.serviceChargeAmount === 'number'
+              ? draft.housingAllocation.serviceChargeAmount
+              : typeof draft.housingAllocation.serviceChargeAmount === 'string' && draft.housingAllocation.serviceChargeAmount !== ''
+                ? parseFloat(draft.housingAllocation.serviceChargeAmount)
+                : undefined,
+        };
+        console.log('DEBUG: Hydrating housingAllocation from localStorage:', draft.housingAllocation);
+        console.log('DEBUG: Normalized housingAllocation:', normalizedHousingAllocation);
+        housingAllocationForm.reset(normalizedHousingAllocation);
       }
       if (draft.supportFramework && !supportFrameworkForm.formState.isDirty) {
         supportFrameworkForm.reset(draft.supportFramework);
