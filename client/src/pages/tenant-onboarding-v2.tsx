@@ -166,7 +166,7 @@ const housingAllocationSchema = z.object({
   startDate: z.string().min(1, 'Move-in date is required'),
   serviceChargeAmount: z.preprocess(
     (val) => val === '' || val === null || val === undefined ? undefined : val,
-    z.coerce.number().nonnegative().optional()
+    z.coerce.number().min(0, 'Service charge cannot be negative').max(1000, 'Service charge cannot exceed £1000').optional()
   ),
 });
 
@@ -2913,11 +2913,24 @@ export default function TenantOnboardingV2() {
                     <Input
                       type="number"
                       step="0.01"
+                      min="0"
+                      max="1000"
                       data-testid="input-service-charge"
                       placeholder="0.00"
-                      {...field}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value === '' ? undefined : e.target.value)}
+                      onBlur={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === '' ? undefined : parseFloat(value));
+                        field.onBlur();
+                      }}
+                      name={field.name}
+                      ref={field.ref}
                     />
                   </FormControl>
+                  <FormDescription>
+                    Enter amount between £0 and £1000 per week
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
