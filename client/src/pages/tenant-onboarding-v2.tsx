@@ -1271,7 +1271,8 @@ export default function TenantOnboardingV2() {
 
   const renderProgressBar = () => {
     const totalSteps = 11;
-    const progress = (step / totalSteps) * 100;
+    // Progress represents completed steps, so step 1 = 0% complete, step 11 = 91% complete
+    const progress = ((step - 1) / totalSteps) * 100;
 
     return (
       <div className="mb-6">
