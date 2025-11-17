@@ -2906,42 +2906,45 @@ export default function TenantOnboardingV2() {
             <FormField
               control={housingAllocationForm.control}
               name="serviceChargeAmount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Service Charge Amount (£/week)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      data-testid="input-service-charge"
-                      placeholder="0.00"
-                      value={field.value ?? ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
-                          field.onChange(value === '' ? undefined : value);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const value = e.target.value;
-                        if (value && value !== '') {
-                          const parsed = parseFloat(value);
-                          if (!isNaN(parsed)) {
-                            field.onChange(parsed);
+              render={({ field }) => {
+                const displayValue = typeof field.value === 'number' ? String(field.value) : (field.value || '');
+                return (
+                  <FormItem>
+                    <FormLabel>Service Charge Amount (£/week)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        data-testid="input-service-charge"
+                        placeholder="0.00"
+                        value={displayValue}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                            field.onChange(value === '' ? undefined : value);
                           }
-                        }
-                        field.onBlur();
-                      }}
-                      name={field.name}
-                      ref={field.ref}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Enter amount between £0 and £1000 per week
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+                        }}
+                        onBlur={(e) => {
+                          const value = e.target.value;
+                          if (value && value !== '') {
+                            const parsed = parseFloat(value);
+                            if (!isNaN(parsed)) {
+                              field.onChange(parsed);
+                            }
+                          }
+                          field.onBlur();
+                        }}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Enter amount between £0 and £1000 per week
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             <div className="flex justify-between">
