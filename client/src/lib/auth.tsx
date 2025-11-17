@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { apiRequest } from './queryClient';
 
-export type UserRole = 'ADMIN' | 'OPS' | 'SUPPORT' | 'VIEWER';
+export type UserRole = 'ADMIN' | 'OPS' | 'SUPPORT' | 'VIEWER' | 'COMPLIANCE_OFFICER';
 
 export interface User {
   id: string;

@@ -184,7 +184,7 @@ router.get('/:tenantId', async (req: AuthRequest, res) => {
   }
 });
 
-router.post('/:documentId/verify', authorize('ADMIN', 'OPS'), async (req: AuditableRequest, res) => {
+router.post('/:documentId/verify', authorize('ADMIN', 'OPS', 'COMPLIANCE_OFFICER'), async (req: AuditableRequest, res) => {
   try {
     const { documentId } = req.params;
     const { notes } = req.body;
@@ -213,7 +213,7 @@ router.post('/:documentId/verify', authorize('ADMIN', 'OPS'), async (req: Audita
   }
 });
 
-router.post('/:documentId/reject', authorize('ADMIN', 'OPS'), async (req: AuditableRequest, res) => {
+router.post('/:documentId/reject', authorize('ADMIN', 'OPS', 'COMPLIANCE_OFFICER'), async (req: AuditableRequest, res) => {
   try {
     const { documentId } = req.params;
     const { reason } = req.body;

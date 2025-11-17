@@ -83,6 +83,13 @@ export default function TenantDetailPage() {
   const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [endReason, setEndReason] = useState('');
   const [endNotes, setEndNotes] = useState('');
+  const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [verifyNotes, setVerifyNotes] = useState('');
+  const [rejectReason, setRejectReason] = useState('');
+  
+  const canVerifyDocuments = user?.role === 'ADMIN' || user?.role === 'OPS' || user?.role === 'COMPLIANCE_OFFICER';
 
   const { data, isLoading } = useQuery<{ tenant: Tenant }>({
     queryKey: ['/api/tenants', tenantId],
@@ -122,6 +129,77 @@ export default function TenantDetailPage() {
         endReason: endReason || undefined,
         endNotes: endNotes || undefined,
       },
+    });
+  };
+
+  const verifyDocumentMutation = useMutation({
+    mutationFn: async ({ documentId, notes }: { documentId: string; notes?: string }) => {
+      const response = await apiRequest('POST', `/api/documents/${documentId}/verify`, { notes });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenants', tenantId] });
+      setVerifyDialogOpen(false);
+      setSelectedDocId(null);
+      setVerifyNotes('');
+      toast({
+        title: 'Document verified',
+        description: 'The document has been successfully verified',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to verify document',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const rejectDocumentMutation = useMutation({
+    mutationFn: async ({ documentId, reason }: { documentId: string; reason: string }) => {
+      const response = await apiRequest('POST', `/api/documents/${documentId}/reject`, { reason });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenants', tenantId] });
+      setRejectDialogOpen(false);
+      setSelectedDocId(null);
+      setRejectReason('');
+      toast({
+        title: 'Document rejected',
+        description: 'The document has been rejected',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to reject document',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleVerifyDocument = () => {
+    if (!selectedDocId) return;
+    verifyDocumentMutation.mutate({
+      documentId: selectedDocId,
+      notes: verifyNotes || undefined,
+    });
+  };
+
+  const handleRejectDocument = () => {
+    if (!selectedDocId || !rejectReason.trim()) {
+      toast({
+        title: 'Rejection reason required',
+        description: 'Please provide a reason for rejecting this document',
+        variant: 'destructive',
+      });
+      return;
+    }
+    rejectDocumentMutation.mutate({
+      documentId: selectedDocId,
+      reason: rejectReason,
     });
   };
 
@@ -379,9 +457,39 @@ export default function TenantDetailPage() {
                         )}
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
-                      View
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" data-testid={`button-view-document-${doc.id}`}>
+                        View
+                      </Button>
+                      {canVerifyDocuments && doc.status === 'PENDING' && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedDocId(doc.id);
+                              setVerifyDialogOpen(true);
+                            }}
+                            data-testid={`button-verify-document-${doc.id}`}
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Verify
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedDocId(doc.id);
+                              setRejectDialogOpen(true);
+                            }}
+                            data-testid={`button-reject-document-${doc.id}`}
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -424,6 +532,97 @@ export default function TenantDetailPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Verify Document Dialog */}
+      <Dialog open={verifyDialogOpen} onOpenChange={setVerifyDialogOpen}>
+        <DialogContent data-testid="dialog-verify-document">
+          <DialogHeader>
+            <DialogTitle>Verify Document</DialogTitle>
+            <DialogDescription>
+              Confirm that you have reviewed this document and it meets all requirements.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="verify-notes">Verification Notes (Optional)</Label>
+              <Textarea
+                id="verify-notes"
+                placeholder="Add any notes about this verification..."
+                value={verifyNotes}
+                onChange={(e) => setVerifyNotes(e.target.value)}
+                rows={3}
+                data-testid="textarea-verify-notes"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setVerifyDialogOpen(false);
+                setSelectedDocId(null);
+                setVerifyNotes('');
+              }}
+              data-testid="button-cancel-verify"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleVerifyDocument}
+              disabled={verifyDocumentMutation.isPending}
+              data-testid="button-confirm-verify"
+            >
+              {verifyDocumentMutation.isPending ? 'Verifying...' : 'Verify Document'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Document Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent data-testid="dialog-reject-document">
+          <DialogHeader>
+            <DialogTitle>Reject Document</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this document. The reason will be shared with the uploader.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="reject-reason">Rejection Reason *</Label>
+              <Textarea
+                id="reject-reason"
+                placeholder="e.g., Document is not clear, wrong document type, expired..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                rows={3}
+                data-testid="textarea-reject-reason"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectDialogOpen(false);
+                setSelectedDocId(null);
+                setRejectReason('');
+              }}
+              data-testid="button-cancel-reject"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectDocument}
+              disabled={rejectDocumentMutation.isPending || !rejectReason.trim()}
+              data-testid="button-confirm-reject"
+            >
+              {rejectDocumentMutation.isPending ? 'Rejecting...' : 'Reject Document'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
