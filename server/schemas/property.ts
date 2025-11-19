@@ -9,6 +9,8 @@ export const createPropertySchema = z.object({
   description: z.string().optional(),
   serviceChargeAmount: z.number().positive().optional(),
   serviceChargeNotes: z.string().optional(),
+  opsUserIds: z.array(z.string().uuid()).optional(),
+  supportUserIds: z.array(z.string().uuid()).optional(),
 });
 
 export const updatePropertySchema = createPropertySchema.partial();

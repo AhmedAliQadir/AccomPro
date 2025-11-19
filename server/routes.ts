@@ -14,6 +14,7 @@ import organizationsRoutes from "./routes/organizations";
 import organizationSettingsRoutes from "./routes/organization-settings";
 import adminRoutes from "./routes/admin";
 import supportDashboardRoutes from "./routes/support-dashboard";
+import usersRoutes from "./routes/users";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
@@ -31,6 +32,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/documents", documentRoutes);
   app.use("/api/reports", reportRoutes);
   app.use("/api/rooms", roomRoutes);
+  app.use("/api/users", usersRoutes);
   
   // Multi-tenant feature routes
   app.use("/api/staff", staffRoutes);

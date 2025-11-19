@@ -91,6 +91,7 @@ router.get('/:id', async (req: TenantRequest, res) => {
                 firstName: true,
                 lastName: true,
                 email: true,
+                role: true,
               },
             },
           },
@@ -119,7 +120,7 @@ router.get('/:id', async (req: TenantRequest, res) => {
   }
 });
 
-router.post('/', authorize('ADMIN', 'OPS', 'ORG_ADMIN'), validate(createPropertySchema), async (req: TenantRequest, res) => {
+router.post('/', authorize('ADMIN', 'OPS', 'ORG_ADMIN'), validate(createPropertySchema), async (req: AuditableRequest & TenantRequest, res) => {
   try {
     const isPlatformAdmin = req.user?.role === 'ADMIN';
     
@@ -140,21 +141,88 @@ router.post('/', authorize('ADMIN', 'OPS', 'ORG_ADMIN'), validate(createProperty
       });
     }
 
-    // Remove organizationId from body if present (we'll add it explicitly)
-    const { organizationId: _omit, ...propertyData } = req.body;
+    // Extract staff assignment arrays
+    const { organizationId: _omit, opsUserIds, supportUserIds, ...propertyData } = req.body;
 
-    const property = await prisma.property.create({
-      data: {
-        ...propertyData,
-        organizationId,
-      },
+    // Validate staff assignments belong to the same organization and have correct roles
+    if (opsUserIds?.length || supportUserIds?.length) {
+      const allUserIds = [...(opsUserIds || []), ...(supportUserIds || [])];
+      
+      const users = await prisma.user.findMany({
+        where: {
+          id: { in: allUserIds },
+          organizationId,
+        },
+        select: {
+          id: true,
+          role: true,
+        },
+      });
+
+      // Validate OPS users have OPS role
+      if (opsUserIds?.length) {
+        const invalidOpsUsers = opsUserIds.filter((id: string) => {
+          const user = users.find(u => u.id === id);
+          return !user || user.role !== 'OPS';
+        });
+        if (invalidOpsUsers.length > 0) {
+          return res.status(400).json({ 
+            error: `Invalid OPS users: ${invalidOpsUsers.join(', ')}. Users must exist, belong to the organization, and have OPS role.` 
+          });
+        }
+      }
+
+      // Validate SUPPORT users have SUPPORT role
+      if (supportUserIds?.length) {
+        const invalidSupportUsers = supportUserIds.filter((id: string) => {
+          const user = users.find(u => u.id === id);
+          return !user || user.role !== 'SUPPORT';
+        });
+        if (invalidSupportUsers.length > 0) {
+          return res.status(400).json({ 
+            error: `Invalid SUPPORT users: ${invalidSupportUsers.join(', ')}. Users must exist, belong to the organization, and have SUPPORT role.` 
+          });
+        }
+      }
+    }
+
+    // Create property and assignments in a transaction
+    const property = await prisma.$transaction(async (tx) => {
+      const newProperty = await tx.property.create({
+        data: {
+          ...propertyData,
+          organizationId,
+        },
+      });
+
+      // Create assignments for OPS users
+      if (opsUserIds?.length) {
+        await tx.assignment.createMany({
+          data: opsUserIds.map((userId: string) => ({
+            userId,
+            propertyId: newProperty.id,
+          })),
+        });
+      }
+
+      // Create assignments for SUPPORT users
+      if (supportUserIds?.length) {
+        await tx.assignment.createMany({
+          data: supportUserIds.map((userId: string) => ({
+            userId,
+            propertyId: newProperty.id,
+          })),
+        });
+      }
+
+      return newProperty;
     });
 
     req.auditLog = {
       action: 'CREATE_PROPERTY',
       entityType: 'Property',
       entityId: property.id,
-      changes: req.body,
+      changes: { ...req.body, assignedStaff: { opsUserIds, supportUserIds } },
     };
 
     res.status(201).json({ property });

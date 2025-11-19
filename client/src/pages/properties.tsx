@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { StaffPicker } from '@/components/StaffPicker';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +46,10 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
   const [description, setDescription] = useState('');
   const [serviceChargeAmount, setServiceChargeAmount] = useState('');
   const [serviceChargeNotes, setServiceChargeNotes] = useState('');
+  const [opsUserIds, setOpsUserIds] = useState<string[]>([]);
+  const [supportUserIds, setSupportUserIds] = useState<string[]>([]);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -62,6 +66,8 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
       setDescription('');
       setServiceChargeAmount('');
       setServiceChargeNotes('');
+      setOpsUserIds([]);
+      setSupportUserIds([]);
       toast({
         title: 'Property created',
         description: 'The property has been created successfully',
@@ -87,6 +93,8 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
       description: description || undefined,
       serviceChargeAmount: serviceChargeAmount ? parseFloat(serviceChargeAmount) : undefined,
       serviceChargeNotes: serviceChargeNotes || undefined,
+      opsUserIds: opsUserIds.length > 0 ? opsUserIds : undefined,
+      supportUserIds: supportUserIds.length > 0 ? supportUserIds : undefined,
     });
   };
 
@@ -180,6 +188,29 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
               data-testid="input-property-service-charge-notes"
             />
           </div>
+          {(user?.isPlatformAdmin || user?.role === 'ADMIN' || user?.role === 'ORG_ADMIN') && (
+            <>
+              <div className="border-t pt-4 mt-4">
+                <h4 className="text-sm font-medium mb-3">Staff Assignment (Optional)</h4>
+                <div className="space-y-4">
+                  <StaffPicker
+                    role="OPS"
+                    selectedUserIds={opsUserIds}
+                    onSelectionChange={setOpsUserIds}
+                    label="Operations Managers"
+                    placeholder="Add Operations Manager"
+                  />
+                  <StaffPicker
+                    role="SUPPORT"
+                    selectedUserIds={supportUserIds}
+                    onSelectionChange={setSupportUserIds}
+                    label="Support Workers"
+                    placeholder="Add Support Worker"
+                  />
+                </div>
+              </div>
+            </>
+          )}
           <div className="flex gap-2">
             <Button type="submit" disabled={createMutation.isPending} data-testid="button-submit-property">
               {createMutation.isPending ? 'Creating...' : 'Create Property'}

@@ -40,9 +40,11 @@ interface Property {
     startDate: string;
     endDate: string | null;
     user: {
+      id: string;
       firstName: string;
       lastName: string;
       email: string;
+      role: string;
     };
   }>;
 }
@@ -378,7 +380,7 @@ export default function PropertyDetailPage() {
         </TabsContent>
 
         <TabsContent value="assignments" className="space-y-4">
-          <h2 className="text-xl font-semibold">Support Worker Assignments</h2>
+          <h2 className="text-xl font-semibold">Staff Assignments</h2>
 
           {property.assignments.length === 0 ? (
             <Card>
@@ -386,34 +388,82 @@ export default function PropertyDetailPage() {
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-lg font-medium">No assignments yet</p>
                 <p className="text-sm text-muted-foreground">
-                  No support workers are assigned to this property
+                  No staff members are assigned to this property
                 </p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {property.assignments.map((assignment) => (
-                <Card key={assignment.id}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-primary" />
-                      {assignment.user.firstName} {assignment.user.lastName}
-                    </CardTitle>
-                    <CardDescription>{assignment.user.email}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-1 text-sm">
+            <div className="space-y-6">
+              {(() => {
+                const opsStaff = property.assignments.filter(a => a.user.role === 'OPS');
+                const supportStaff = property.assignments.filter(a => a.user.role === 'SUPPORT');
+                
+                return (
+                  <>
+                    {opsStaff.length > 0 && (
                       <div>
-                        <span className="text-muted-foreground">Start Date: </span>
-                        {new Date(assignment.startDate).toLocaleDateString()}
+                        <h3 className="text-lg font-medium mb-3">Operations Managers</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {opsStaff.map((assignment) => (
+                            <Card key={assignment.id} data-testid={`card-assignment-ops-${assignment.user.id}`}>
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                  <Users className="h-5 w-5 text-primary" />
+                                  {assignment.user.firstName} {assignment.user.lastName}
+                                </CardTitle>
+                                <CardDescription>{assignment.user.email}</CardDescription>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline">OPS</Badge>
+                                    <Badge variant="secondary">Active</Badge>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Assigned: </span>
+                                    {new Date(assignment.startDate).toLocaleDateString()}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
                       </div>
+                    )}
+                    
+                    {supportStaff.length > 0 && (
                       <div>
-                        <Badge variant="secondary">Active</Badge>
+                        <h3 className="text-lg font-medium mb-3">Support Workers</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {supportStaff.map((assignment) => (
+                            <Card key={assignment.id} data-testid={`card-assignment-support-${assignment.user.id}`}>
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                  <Users className="h-5 w-5 text-primary" />
+                                  {assignment.user.firstName} {assignment.user.lastName}
+                                </CardTitle>
+                                <CardDescription>{assignment.user.email}</CardDescription>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline">SUPPORT</Badge>
+                                    <Badge variant="secondary">Active</Badge>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Assigned: </span>
+                                    {new Date(assignment.startDate).toLocaleDateString()}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
         </TabsContent>
