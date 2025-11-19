@@ -44,7 +44,7 @@ export default function LoginPage() {
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-center gap-2">
             <Building2 className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">AccomPro</h1>
+            <h1 className="text-2xl font-bold">AccommodateME</h1>
           </div>
           <div>
             <CardTitle>Sign in to your account</CardTitle>
@@ -60,7 +60,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@accompro.com"
+                placeholder="your.email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -90,11 +90,6 @@ export default function LoginPage() {
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
-          <div className="mt-6 p-4 bg-muted rounded-md text-sm">
-            <p className="font-medium mb-2">Demo Credentials:</p>
-            <p className="text-muted-foreground">Admin: admin@accompro.com / admin123</p>
-            <p className="text-muted-foreground">Ops: ops@accompro.com / ops123</p>
-          </div>
         </CardContent>
       </Card>
     </div>
