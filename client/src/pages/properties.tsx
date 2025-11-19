@@ -195,6 +195,7 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
                 <div className="space-y-4">
                   <StaffPicker
                     role="OPS"
+                    organizationId={user.organizationId}
                     selectedUserIds={opsUserIds}
                     onSelectionChange={setOpsUserIds}
                     label="Operations Managers"
@@ -202,6 +203,7 @@ function CreatePropertyDialog({ onSuccess }: { onSuccess: () => void }) {
                   />
                   <StaffPicker
                     role="SUPPORT"
+                    organizationId={user.organizationId}
                     selectedUserIds={supportUserIds}
                     onSelectionChange={setSupportUserIds}
                     label="Support Workers"

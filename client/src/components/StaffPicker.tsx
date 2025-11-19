@@ -16,17 +16,20 @@ interface User {
 
 interface StaffPickerProps {
   role: 'OPS' | 'SUPPORT';
+  organizationId: string;
   selectedUserIds: string[];
   onSelectionChange: (userIds: string[]) => void;
   label: string;
   placeholder?: string;
 }
 
-export function StaffPicker({ role, selectedUserIds, onSelectionChange, label, placeholder }: StaffPickerProps) {
+export function StaffPicker({ role, organizationId, selectedUserIds, onSelectionChange, label, placeholder }: StaffPickerProps) {
   const [open, setOpen] = useState(false);
 
+  const queryUrl = `/api/users?role=${role}&organizationId=${organizationId}`;
+  
   const { data, isLoading } = useQuery<{ users: User[] }>({
-    queryKey: ['/api/users', { role }],
+    queryKey: [queryUrl],
   });
 
   const users = data?.users || [];
