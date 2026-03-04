@@ -432,6 +432,167 @@ function AddTrainingDialog({ staffId, staffName }: { staffId: string; staffName:
   );
 }
 
+function StaffDetailDialog({ member, open, onClose }: { member: StaffMember | null; open: boolean; onClose: () => void }) {
+  if (!member) return null;
+
+  const isDbsExpiringSoon = (expiryDate?: string) => {
+    if (!expiryDate) return false;
+    const expiry = new Date(expiryDate);
+    const today = new Date();
+    const sixtyDaysFromNow = new Date();
+    sixtyDaysFromNow.setDate(today.getDate() + 60);
+    return expiry <= sixtyDaysFromNow && expiry >= today;
+  };
+
+  const dbsExpiring = isDbsExpiringSoon(member.dbsExpiryDate);
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl">
+            {member.firstName} {member.lastName}
+          </DialogTitle>
+          <DialogDescription>{member.jobTitle}</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6 py-2">
+          {/* Status */}
+          <div className="flex items-center gap-2">
+            <Badge variant={member.isActive ? 'default' : 'secondary'}>
+              {member.isActive ? 'Active' : 'Inactive'}
+            </Badge>
+            {dbsExpiring && (
+              <Badge variant="outline" className="border-orange-400 text-orange-600">
+                DBS Expiring Soon
+              </Badge>
+            )}
+          </div>
+
+          {/* Contact Details */}
+          <div>
+            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">Contact Details</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {member.email && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-sm font-medium">{member.email}</p>
+                </div>
+              )}
+              {member.phone && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="text-sm font-medium">{member.phone}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-xs text-muted-foreground">Start Date</p>
+                <p className="text-sm font-medium">{new Date(member.startDate).toLocaleDateString()}</p>
+              </div>
+              {member.endDate && (
+                <div>
+                  <p className="text-xs text-muted-foreground">End Date</p>
+                  <p className="text-sm font-medium">{new Date(member.endDate).toLocaleDateString()}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* DBS Details */}
+          <div>
+            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">DBS Check</h3>
+            {member.dbsNumber ? (
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">DBS Number</p>
+                  <p className="text-sm font-mono font-medium">{member.dbsNumber}</p>
+                </div>
+                {member.dbsCheckDate && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Check Date</p>
+                    <p className="text-sm font-medium">{new Date(member.dbsCheckDate).toLocaleDateString()}</p>
+                  </div>
+                )}
+                {member.dbsExpiryDate && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Expiry Date</p>
+                    <p className={`text-sm font-medium ${dbsExpiring ? 'text-orange-600' : ''}`}>
+                      {new Date(member.dbsExpiryDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No DBS record on file</p>
+            )}
+          </div>
+
+          {/* Training Records */}
+          <div>
+            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+              Training Records ({member.trainingRecords?.length || 0} courses)
+            </h3>
+            {member.trainingRecords && member.trainingRecords.length > 0 ? (
+              <div className="space-y-2">
+                {member.trainingRecords.map((record, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                    <div>
+                      <p className="text-sm font-medium">{record.courseName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Completed: {new Date(record.completedDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                    {record.expiryDate && (
+                      <p className="text-xs text-muted-foreground">
+                        Expires: {new Date(record.expiryDate).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No training records on file</p>
+            )}
+          </div>
+
+          {/* Emergency Contact */}
+          {member.emergencyContact && (
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">Emergency Contact</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Name</p>
+                  <p className="text-sm font-medium">{member.emergencyContact.name}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Relationship</p>
+                  <p className="text-sm font-medium">{member.emergencyContact.relationship}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="text-sm font-medium">{member.emergencyContact.phone}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Notes */}
+          {member.notes && (
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">Notes</h3>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{member.notes}</p>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function DeactivateStaffDialog({ staffId, staffName }: { staffId: string; staffName: string }) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
@@ -494,7 +655,14 @@ function DeactivateStaffDialog({ staffId, staffName }: { staffId: string; staffN
 export default function StaffPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const { user } = useAuth();
+
+  const handleRowClick = (member: StaffMember) => {
+    setSelectedStaff(member);
+    setDetailOpen(true);
+  };
 
   const { data, isLoading } = useQuery<{ staff: StaffMember[] }>({
     queryKey: ['/api/staff'],
@@ -640,7 +808,12 @@ export default function StaffPage() {
                   </TableHeader>
                   <TableBody>
                     {displayStaff.map((member) => (
-                      <TableRow key={member.id} data-testid={`row-staff-${member.id}`}>
+                      <TableRow 
+                        key={member.id} 
+                        data-testid={`row-staff-${member.id}`}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleRowClick(member)}
+                      >
                         <TableCell>
                           <div>
                             <p className="font-medium">{member.firstName} {member.lastName}</p>
@@ -684,7 +857,7 @@ export default function StaffPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             {canManage && member.isActive && (
                               <>
                                 <AddTrainingDialog 
@@ -708,6 +881,12 @@ export default function StaffPage() {
           </Tabs>
         </CardContent>
       </Card>
+
+      <StaffDetailDialog 
+        member={selectedStaff} 
+        open={detailOpen} 
+        onClose={() => setDetailOpen(false)} 
+      />
     </div>
   );
 }

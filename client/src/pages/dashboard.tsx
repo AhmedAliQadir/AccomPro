@@ -18,13 +18,24 @@ interface DashboardStats {
   };
 }
 
+interface OrgData {
+  organization: {
+    name: string;
+  };
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
 
   // Fetch dashboard stats for default dashboard (always call hooks unconditionally)
   const { data, isLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/reports/dashboard'],
-    enabled: !isPlatformAdmin(user) && user?.role !== 'SUPPORT', // Only fetch if needed
+    enabled: !isPlatformAdmin(user) && user?.role !== 'SUPPORT',
+  });
+
+  const { data: orgData } = useQuery<OrgData>({
+    queryKey: ['/api/organization'],
+    enabled: !isPlatformAdmin(user),
   });
 
   // Route to role-specific dashboards
@@ -62,12 +73,26 @@ export default function DashboardPage() {
     );
   }
 
+  const orgName = orgData?.organization?.name;
+  const firstName = user?.firstName;
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  })();
+
   return (
     <div className="p-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Overview of your housing association management
+      <div className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
+        <p className="text-blue-200 text-sm font-medium mb-1">
+          {orgName || 'Your Organisation'}
+        </p>
+        <h1 className="text-3xl font-bold">
+          {greeting}{firstName ? `, ${firstName}` : ''} 👋
+        </h1>
+        <p className="text-blue-100 mt-1 text-sm">
+          Here's an overview of your housing association today
         </p>
       </div>
 
