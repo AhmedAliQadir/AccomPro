@@ -1,16 +1,11 @@
 import jwt from 'jsonwebtoken';
 
-const isDevelopment = process.env.NODE_ENV === 'development';
-
 if (!process.env.JWT_SECRET) {
-  if (!isDevelopment) {
-    throw new Error('JWT_SECRET environment variable is required in production');
-  }
-  console.warn('⚠️  WARNING: Using development fallback for JWT_SECRET. Set JWT_SECRET environment variable for production!');
+  throw new Error('FATAL: JWT_SECRET environment variable is not set. Refusing to start.');
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
-const JWT_EXPIRY = '7d';
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRY = '8h';
 const DOWNLOAD_TOKEN_EXPIRY = '15m';
 
 export interface TokenPayload {
@@ -18,7 +13,7 @@ export interface TokenPayload {
   email: string;
   role: string;
   organizationId: string;
-  isPlatformAdmin: boolean; // Orbixio LTD staff flag for cross-org access
+  isPlatformAdmin: boolean;
 }
 
 export interface DownloadTokenPayload {

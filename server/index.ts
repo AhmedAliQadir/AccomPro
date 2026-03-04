@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import helmet from "helmet";
+import cors from "cors";
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -9,6 +10,11 @@ const app = express();
 app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
   crossOriginEmbedderPolicy: false,
+}));
+
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGIN || 'http://localhost:3001',
+  credentials: true,
 }));
 
 app.use(cookieParser());

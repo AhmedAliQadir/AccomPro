@@ -40,6 +40,7 @@ router.get('/dashboard', async (req, res) => {
 
     const occupiedRooms = occupancy.filter(r => r._count.tenancies > 0).length;
     const availableRooms = totalRooms - occupiedRooms;
+    const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
 
     res.json({
       summary: {
@@ -51,6 +52,7 @@ router.get('/dashboard', async (req, res) => {
         totalRooms,
         occupiedRooms,
         availableRooms,
+	occupancyRate,
       },
     });
   } catch (error) {
