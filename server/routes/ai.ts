@@ -16,7 +16,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 const aiLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 30,
-  keyGenerator: (req: any) => req.user?.userId || req.ip,
+  keyGenerator: (req: any) => req.user?.userId || 'anonymous',
   message: { error: 'AI rate limit exceeded. Please try again later.' },
 });
 
