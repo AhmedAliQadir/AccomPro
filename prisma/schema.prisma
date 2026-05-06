@@ -138,15 +138,17 @@ model Organization {
   updatedAt        DateTime         @updatedAt
 
   // Relations
-  users        User[]
-  properties   Property[]
-  residents    Tenant[]          // Will be renamed to Resident
-  documents    Document[]
-  auditLogs    AuditLog[]
-  staff        Staff[]
-  incidents    Incident[]
-  compliance   Compliance[]
-  supportNotes SupportNote[]
+  users           User[]
+  properties      Property[]
+  residents       Tenant[]          // Will be renamed to Resident
+  documents       Document[]
+  auditLogs       AuditLog[]
+  staff           Staff[]
+  incidents       Incident[]
+  compliance      Compliance[]
+  supportNotes    SupportNote[]
+  aiConversations AiConversation[]
+  riskAlerts      RiskAlert[]
 
   @@map("organizations")
 }
@@ -174,6 +176,7 @@ model User {
   tenanciesEnded      Tenancy[]    @relation("TenancyEndedBy")
   incidentsReported   Incident[]   @relation("IncidentReporter")
   supportNotes        SupportNote[] @relation("SupportWorker")
+  aiConversations     AiConversation[]
 
   @@index([organizationId])
   @@map("users")
@@ -779,4 +782,45 @@ model SupportNote {
   @@index([supportWorkerId])
   @@index([sessionDate])
   @@map("support_notes")
+}
+
+model AiConversation {
+  id             String   @id @default(uuid())
+  organizationId String
+  userId         String
+  title          String?
+  messages       Json     // [{role, content}]
+  tokenCount     Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@map("ai_conversations")
+}
+
+model RiskAlert {
+  id             String    @id @default(uuid())
+  organizationId String
+  category       String    // DBS_EXPIRY, OVERDUE_AUDIT, UNRESOLVED_INCIDENT, etc.
+  severity       String    // LOW, MEDIUM, HIGH, CRITICAL
+  title          String
+  description    String    @db.Text
+  recommendation String?   @db.Text
+  entityType     String?
+  entityId       String?
+  isAcknowledged Boolean   @default(false)
+  acknowledgedBy String?
+  acknowledgedAt DateTime?
+  emailSentAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([isAcknowledged])
+  @@map("risk_alerts")
 }

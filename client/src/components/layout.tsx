@@ -12,6 +12,7 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { LogOut, User } from 'lucide-react';
+import { ChatTrigger } from '@/components/ai/chat-trigger';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
@@ -56,6 +57,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+      <ChatTrigger />
     </div>
   );
 }

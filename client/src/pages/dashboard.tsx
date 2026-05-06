@@ -4,6 +4,7 @@ import { Users, Building2, Home, FileCheck, UserCheck, Clock } from 'lucide-reac
 import { useAuth, isPlatformAdmin } from '@/lib/auth';
 import AdminDashboard from './admin-dashboard';
 import SupportDashboard from './support-dashboard';
+import { RiskAlertsPanel } from '@/components/ai/risk-alerts-panel';
 
 interface DashboardStats {
   summary: {
@@ -186,6 +187,11 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Risk Alerts for admin users */}
+      {(user?.role === 'ADMIN' || user?.role === 'OPS' || user?.role === 'ORG_ADMIN') && (
+        <RiskAlertsPanel />
+      )}
     </div>
   );
 }

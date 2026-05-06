@@ -44,6 +44,8 @@ import { z } from 'zod';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
+import { ReportGenerator } from '@/components/ai/report-generator';
+import { PolicyReview } from '@/components/ai/policy-review';
 
 type AuditType = 
   | 'CQC_INSPECTION'
@@ -661,6 +663,14 @@ export default function CompliancePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* AI-Powered Tools */}
+      {canManage && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <ReportGenerator />
+          <PolicyReview />
+        </div>
+      )}
     </div>
   );
 }

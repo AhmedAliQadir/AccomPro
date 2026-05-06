@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import authRoutes from "./routes/auth";
 import propertyRoutes from "./routes/properties";
 import tenantRoutes from "./routes/tenants";
+import tenancyRoutes from "./routes/tenancies";
 import documentRoutes from "./routes/documents";
 import reportRoutes from "./routes/reports";
 import roomRoutes from "./routes/rooms";
@@ -15,6 +16,7 @@ import organizationSettingsRoutes from "./routes/organization-settings";
 import adminRoutes from "./routes/admin";
 import supportDashboardRoutes from "./routes/support-dashboard";
 import usersRoutes from "./routes/users";
+import aiRoutes from "./routes/ai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
@@ -28,7 +30,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Main application routes
   app.use("/api/properties", propertyRoutes);
   app.use("/api/tenants", tenantRoutes);
-  app.use("/api/tenancies", tenantRoutes); // Mount tenancy routes separately
+  app.use("/api/tenancies", tenancyRoutes);
   app.use("/api/documents", documentRoutes);
   app.use("/api/reports", reportRoutes);
   app.use("/api/rooms", roomRoutes);
@@ -40,6 +42,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/compliance", complianceRoutes);
   app.use("/api/support-notes", supportNotesRoutes);
   app.use("/api/support", supportDashboardRoutes);
+
+  // AI assistant routes
+  app.use("/api/ai", aiRoutes);
 
   // API health check
   app.get("/api/health", (req, res) => {
