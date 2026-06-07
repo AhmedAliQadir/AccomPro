@@ -24,7 +24,7 @@ A comprehensive multi-tenant SaaS platform designed for UK supported housing and
 - **JWT Authentication**: HTTP-only cookies with session management
 - **Audit Logging**: Complete trail of all user actions
 - **Role-Based Permissions**: Four-tier access control system
-- **99.5% Uptime SLA**: Enterprise-grade reliability
+- **Production-Ready Architecture**: Built for enterprise-grade reliability
 
 ## 🚀 Tech Stack
 
@@ -158,9 +158,9 @@ Reset database (WARNING: deletes all data):
 npx prisma migrate reset
 ```
 
-## 🏢 For Housing Associations
+## 🏢 For Housing Associations (Planned Commercial Model)
 
-### Subscription Tiers
+### Proposed Pricing (Pilot)
 
 **Starter** - £199/month
 - Up to 5 users
@@ -180,7 +180,7 @@ npx prisma migrate reset
 - Dedicated support
 - Custom integrations
 
-### Implementation Timeline
+### Proposed Implementation Timeline
 - **Week 1-2**: Data migration and user training
 - **Week 3**: Pilot rollout
 - **Week 4**: Full deployment
@@ -199,14 +199,11 @@ npx prisma migrate reset
 
 Proprietary - All rights reserved by Orbixio LTD
 
-## 🤝 Support
+## 🤝 Contact
 
-For support inquiries:
-- Email: support@orbixio.co.uk
-- Documentation: docs.accommodateme.co.uk
-- Support Portal: support.accommodateme.co.uk
-
-## 🛠️ Contributing
+For enquiries about AccommodateME:
+- Email: ahmedaliqadir95@gmail.com
+- GitHub: github.com/AhmedAliQadir/AccomPro
 
 This is a proprietary commercial application. For feature requests or bug reports, please contact the development team.
 
